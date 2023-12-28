@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+
+<style>
+body {
+  background-color: #000;
+  color: #fff;
+  padding: 0;
+  margin: 0;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  font-size: 0;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+p, h1, h2, h3 {
+  color: inherit;
+}
+
+.char-container {
+  background-color: #222;
+  width: 6.25vw;
+  height: 6.25vw;
+  margin: 0;
+  display: inline-block;
+  
+}
+
+.char {
+  font-size: 5vw;
+  margin: 0;
+  text-align: center;
+  line-height: 6.25vw;
+}
+
+</style>
+
+<script>
+
+offset = -5;
+prevoffset = -5;
+
+function customModulo(a, b) {
+  return ((a % b) + b) % b;
+}
+
+function isDisallowed(char) {
+  const isControlOrWhitespace = /\p{General_Category=Control}|\s/u.test(char);
+  return isControlOrWhitespace;
+}
+
+function update(time) {
+  const boxHeight = window.innerWidth / 16;
+  console.log(offset);
+  // window.scrollTo(0, 5 * boxHeight + customModulo(window.scrollY, boxHeight));
+  
+  
+  
+  // window.requestAnimationFrame(update);
+}
+
+document.addEventListener("DOMContentLoaded", (event) => {
+  
+  for (i=0; i<784; i++) {
+    let box = document.createElement('div');
+    box.classList.add("char-container");
+ 
+    let character = document.createElement('p');
+    character.classList.add("char");
+    charString = String.fromCharCode(i);
+    if (isDisallowed(charString)) {
+      character.innerHTML = "__";
+    } else {
+      character.innerHTML = charString;
+    }
+    
+    box.appendChild(character);
+    document.body.appendChild(box);
+  }
+  window.requestAnimationFrame(update);
+});
+
+</script>
+
+</head>
+<body>
+
+</body>
+</html>
