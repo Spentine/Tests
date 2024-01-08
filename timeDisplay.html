@@ -2,11 +2,29 @@
 <html>
 <head>
 <style>
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("fonts/IBMPlexMono-Medium.ttf");
+}
+
+body {
+  font-family: "IBM Plex Sans";
+}
+
+p.disp {
+  color: #ffffff;
+  font-family: inherit;
+  margin: 0;
+  position: absolute;
+}
+
 </style>
 <title>
 </title>
 <script>
-dark = true
+
+dark = true;
 
 function init() {
   if (dark) {
@@ -23,12 +41,24 @@ function update(time) {
   var deltaTime = time - lastTime;
   lastTime = time;
   
+  {
+    let element = document.getElementById('mainTime');
+    const Xoffset = element.offsetWidth;
+    const Yoffset = element.offsetHeight;
+    
+    element.style.left = (window.innerWidth - Xoffset) / 2 + "px";
+    element.style.top = (window.innerHeight - Yoffset) / 2 + "px";
+    element.style.font-size = 
+  }
+  
   window.requestAnimationFrame(update);
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
 </script>
 </head>
 <body>
+<p id="mainTime" class="disp mainTime">00:00</p>
 </body>
 </html>
