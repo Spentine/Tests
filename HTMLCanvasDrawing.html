@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title> Template </title>
+
+<style>
+
+html, body {
+  margin: 0 !important;
+  padding: 3 !important;
+  overflow: hidden;
+}
+
+body {
+  background-color: #000000;
+}
+
+#canvas {
+  position: absolute;
+}
+
+</style>
+
+<script>
+
+// JavaScript here
+
+function main() {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  const mousePosition = {"x": 0, "y": 0};
+  var mouseDown = false;
+  resize();
+  window.requestAnimationFrame(tick);
+  
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.fillStyle = "#222222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  
+  function mouseMovement(event) {
+    mousePosition.x = event.clientX;
+    mousePosition.y = event.clientY;
+    
+    if (mouseDown) {
+      // ctx.fillStyle = "#ffffff";
+      // ctx.fillRect(mousePosition.x - 2, mousePosition.y - 2, 5, 5);
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 5.0;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(lastPosition.x, lastPosition.y);
+      ctx.lineTo(mousePosition.x, mousePosition.y);
+      ctx.stroke();
+    }
+    
+    lastPosition = structuredClone(mousePosition);
+  }
+  
+  function render() {
+    
+  }
+  
+  function tick() {
+    
+    render();
+    
+    window.requestAnimationFrame(tick);
+  }
+  
+  document.addEventListener("mousemove", mouseMovement);
+  window.onresize = resize;
+  document.body.onmousedown = function() { mouseDown = true }
+  document.body.onmouseup = function() { mouseDown = false }
+}
+
+document.addEventListener("DOMContentLoaded", main);
+
+</script>
+</head>
+<body>
+
+<canvas id=canvas> </canvas>
+
+</body>
+</html>

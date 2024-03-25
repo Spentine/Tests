@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title> Template </title>
+
+<style>
+
+html, body {
+  margin: 0 !important;
+  padding: 3 !important;
+  overflow: hidden;
+}
+
+body {
+  background-color: #000000;
+}
+
+#canvas {
+  position: absolute;
+}
+
+</style>
+
+<script>
+
+// JavaScript here
+
+function main() {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.requestAnimationFrame(tick);
+  
+  function render() {
+    ctx.fillStyle = "#222222";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+  
+  function tick() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    render();
+    
+    window.requestAnimationFrame(tick);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", main);
+
+</script>
+</head>
+<body>
+
+<canvas id=canvas> </canvas>
+
+</body>
+</html>
