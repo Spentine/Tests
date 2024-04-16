@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title> Template </title>
+
+<script src="englishWords.js"> </script>
+<script>
+
+var allowedLetters = "dcbasuxe?1234";
+var replacements = {"nq": "1", "lq": "2", "hq": "3", "ok": "4"};
+
+// getAll(allowedLetters, englishWords, replacements, true).sort((a, b) => (1 - 2 * (a.length > b.length)));
+// getAll(allowedLetters, englishWords, replacements, false).sort((a, b) => (1 - 2 * (a.length > b.length)));
+// emoteReplaceWord();
+
+function getLongest(letters, words) {
+  var longest = [""];
+  for (let i in words) {
+    if (words[i].length >= longest[0].length) {
+      works = true;
+      for (let j in words[i]) {
+        if (!(letters.includes(words[i][j]))) {
+          works = false;
+          break;
+        }
+      }
+      if (works) {
+        if (words[i].length === longest[0].length) {
+          longest.push(words[i]);
+        } else {
+          longest = [words[i]];
+        }
+      }
+    }
+  }
+  return longest;
+}
+
+function getAll(letters, words, replace, m) {
+  const valid = [];
+  const r = Object.keys(replace);
+  for (let i in words) {
+    var w = words[i].toLowerCase();
+    for (let j in r) {
+      w = w.replace(r[j], replace[r[j]]);
+    }
+    works = true;
+    for (let j in w) {
+      if (!(letters.includes(w[j]))) {
+        works = false;
+        break;
+      }
+    }
+    if (works) {
+      if (m) {
+        valid.push(words[i]);
+      } else {
+        valid.push(w);
+      }
+    }
+  }
+  return valid;
+}
+
+const emoteReplacements = {"d": ":rankd:", "c": ":rankc:", "b": ":rankb:", "a": ":ranka:", "s": ":ranks:", "u": ":ranku:", "x": ":rankx:", "e": ":eee:", "?": ":rankz:", "1": ":nq:", "2": ":lq:", "3": ":hq:", "4": ":ok:"};
+
+function emoteReplaceWord(word) {
+  let w = "";
+  for (i in word) {
+    w += emoteReplacements[word[i]];
+  }
+  return w;
+}
+
+</script>
+</head>
+<body>
+
+
+
+</body>
+</html>
