@@ -27,10 +27,10 @@ body {
 // JavaScript here
 
 function main() {
-  const canvas = document.getElementById("canvas");
+  const canvas = document.getElementById("img");
   const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = 100;
+  canvas.height = 100;
   window.requestAnimationFrame(tick);
   
   function render() {
@@ -39,8 +39,8 @@ function main() {
   }
   
   function tick() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    canvas.width = 100;
+    canvas.height = 100;
     
     render();
     
@@ -54,7 +54,11 @@ document.addEventListener("DOMContentLoaded", main);
 </head>
 <body>
 
-<canvas id=canvas> </canvas>
+<input type=file accept="image">
+
+<br>
+
+<canvas id=img> </canvas>
 
 </body>
 </html>
