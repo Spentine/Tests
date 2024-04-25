@@ -14,6 +14,7 @@ html, body {
 
 body {
   background-color: #000000;
+  color: #ffffff;
 }
 
 #canvas {
@@ -26,26 +27,85 @@ body {
 
 // JavaScript here
 
-function main() {
-  const canvas = document.getElementById("img");
-  const ctx = canvas.getContext("2d");
-  canvas.width = 100;
-  canvas.height = 100;
+function readFileAsImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      resolve(img);
+    };
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function main() {
+  const sCanvas = document.getElementById("sCanvas");
+  const sCtx = sCanvas.getContext("2d");
+  sCanvas.width = 100;
+  sCanvas.height = 100;
+  
+  const dCanvas = document.getElementById("dCanvas");
+  const dCtx = dCanvas.getContext("2d");
+  dCanvas.width = 100;
+  dCanvas.height = 100;
+  
+  const imgInput = document.getElementById("imginput");
+  var imageRendered = null;
+  
+  const marginElement = document.getElementById("margin");
+  
+  const sxElement = document.getElementById("sx");
+  const syElement = document.getElementById("sy");
+  const sWidthElement = document.getElementById("sWidth");
+  const sHeightElement = document.getElementById("sHeight");
+  const dxElement = document.getElementById("dx");
+  const dyElement = document.getElementById("dy");
+  const dWidthElement = document.getElementById("dWidth");
+  const dHeightElement = document.getElementById("dHeight");
+  
   window.requestAnimationFrame(tick);
   
-  function render() {
-    ctx.fillStyle = "#222222";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  async function processImage(event) {
+    const file = event.target.files[0];
+    const image = await readFileAsImage(file);
+    imageRendered = image;
+    console.log("Image dimensions: " + image.width + " x " + image.height);
   }
   
-  function tick() {
-    canvas.width = 100;
-    canvas.height = 100;
+  async function render() {
+    const margin = marginElement.value;
+    
+    sCtx.fillStyle = "#111111";
+    sCtx.fillRect(0, 0, sCanvas.width, sCanvas.height);
+    
+    dCtx.fillStyle = "#111111";
+    dCtx.fillRect(0, 0, dCanvas.width, dCanvas.height);
+    
+    if (imageRendered) {
+      sCtx.drawImage(imageRendered, margin, margin);
+      dCtx.drawImage(imageRendered, sxElement.value, syElement.value, sWidthElement.value, sHeightElement.value, dxElement.value, dyElement.value, dWidthElement.value, dHeightElement.value);
+    }
+  }
+  
+  async function tick() {
+    if (imageRendered) {
+      const margin = marginElement.value;
+      
+      sCanvas.width = imageRendered.width + 2 * margin;
+      sCanvas.height = imageRendered.height + 2 * margin;
+      
+      dCanvas.width = imageRendered.width + 2 * margin;
+      dCanvas.height = imageRendered.height + 2 * margin;
+    }
     
     render();
     
     window.requestAnimationFrame(tick);
   }
+  
+  imgInput.addEventListener("change", processImage);
 }
 
 document.addEventListener("DOMContentLoaded", main);
@@ -54,11 +114,45 @@ document.addEventListener("DOMContentLoaded", main);
 </head>
 <body>
 
-<input type=file accept="image">
+<input id=imginput type=file accept="image">
 
 <br>
 
-<canvas id=img> </canvas>
+<canvas id=sCanvas> </canvas>
+<canvas id=dCanvas> </canvas>
+
+<br>
+
+<p> margin </p>
+<input type="range" min="0" max="200" value="50" id=margin>
+
+<br>
+
+<p> sx, sy </p>
+
+<input type="range" min="0" max="200" value="50" id=sx>
+<input type="range" min="0" max="200" value="50" id=sy>
+
+<br>
+
+<p> sWidth, sHeight </p>
+
+<input type="range" min="0" max="200" value="50" id=sWidth>
+<input type="range" min="0" max="200" value="50" id=sHeight>
+
+<br> 
+
+<p> dx, dy </p>
+
+<input type="range" min="0" max="200" value="50" id=dx>
+<input type="range" min="0" max="200" value="50" id=dy>
+
+<br>
+
+<p> dWidth, dHeight </p>
+
+<input type="range" min="0" max="200" value="50" id=dWidth>
+<input type="range" min="0" max="200" value="50" id=dHeight>
 
 </body>
 </html>
