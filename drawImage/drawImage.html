@@ -85,7 +85,10 @@ async function main() {
     
     if (imageRendered) {
       sCtx.drawImage(imageRendered, margin, margin);
-      dCtx.drawImage(imageRendered, sxElement.value, syElement.value, sWidthElement.value, sHeightElement.value, dxElement.value, dyElement.value, dWidthElement.value, dHeightElement.value);
+      sCtx.strokeStyle = "red";
+      sCtx.lineWidth = 3;
+      sCtx.strokeRect(Number(sxElement.value) + Number(margin), Number(syElement.value) + Number(margin), sWidthElement.value, sHeightElement.value);
+      dCtx.drawImage(imageRendered, sxElement.value, syElement.value, sWidthElement.value, sHeightElement.value, Number(dxElement.value) + Number(margin), Number(dyElement.value) + Number(margin), dWidthElement.value, dHeightElement.value);
     }
   }
   
@@ -98,6 +101,16 @@ async function main() {
       
       dCanvas.width = imageRendered.width + 2 * margin;
       dCanvas.height = imageRendered.height + 2 * margin;
+      
+      sxElement.max = imageRendered.width;
+      syElement.max = imageRendered.height;
+      sWidthElement.max = imageRendered.width;
+      sHeightElement.max = imageRendered.height;
+      
+      dxElement.max = imageRendered.width;
+      dyElement.max = imageRendered.height;
+      dWidthElement.max = imageRendered.width;
+      dHeightElement.max = imageRendered.height;
     }
     
     render();
@@ -124,7 +137,7 @@ document.addEventListener("DOMContentLoaded", main);
 <br>
 
 <p> margin </p>
-<input type="range" min="0" max="200" value="50" id=margin>
+<input type="range" min="0" max="200" value="0" id=margin>
 
 <br>
 
