@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title> Template </title>
+
+<style>
+
+html, body {
+  margin: 0 !important;
+  padding: 3 !important;
+  overflow: hidden;
+}
+
+body {
+  background-color: #000000;
+}
+
+#canvas {
+  position: absolute;
+}
+
+</style>
+
+<script>
+
+// JavaScript here
+
+var staticMode = "rgb";
+
+function main() {
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  var img = ctx.createImageData(canvas.width, canvas.height);
+  var data = img.data;
+  console.log(img);
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  window.requestAnimationFrame(tick);
+  var d = 10;
+  
+  function r() {
+    return Math.floor(Math.random() * 256);
+  }
+  function p() {
+    return Math.floor(Math.random() * d);
+  }
+  
+  function render() {
+    console.log(d);
+    for (var y=0; y<canvas.height; y++) {
+      for (var x=0; x<canvas.width; x++) {
+        data[((canvas.width * y) + x) * 4] = r();
+        data[((canvas.width * y) + x) * 4 + 1] = r();
+        data[((canvas.width * y) + x) * 4 + 2] = r();
+        data[((canvas.width * y) + x) * 4 + 3] = 255;
+        x += p();
+      }
+    }
+    
+    ctx.putImageData(img, 0, 0);
+  }
+  
+  function tick() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    if (img.width !== canvas.width || img.height !== canvas.height) {
+      img = ctx.createImageData(canvas.width, canvas.height);
+      data = img.data;
+      d = Math.floor((window.innerWidth * window.innerHeight) * 0.00001)
+    }
+    render();
+    
+    window.requestAnimationFrame(tick);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", main);
+
+</script>
+</head>
+<body>
+
+<canvas id=canvas> </canvas>
+
+</body>
+</html>
