@@ -7,12 +7,18 @@
 <script src="englishWords.js"> </script>
 <script>
 
-var allowedLetters = "dcbasuxe?1234";
-var replacements = {"nq": "1", "lq": "2", "hq": "3", "ok": "4"};
+// var allowedLetters = "dcbasuxe?1234";
+// var replacements = {"nq": "1", "lq": "2", "hq": "3", "ok": "4"};
+// var allowedLetters = "uiopjklmyhn-";
+
+var allowedLetters = "liojbdtacrefghkmn";
+var replacements = {};
 
 // getAll(allowedLetters, englishWords, replacements, true).sort((a, b) => (1 - 2 * (a.length > b.length)));
 // getAll(allowedLetters, englishWords, replacements, false).sort((a, b) => (1 - 2 * (a.length > b.length)));
 // emoteReplaceWord();
+
+console.log(getAll(allowedLetters, englishWords, replacements, false).sort((a, b) => (1 - 2 * (a.length > b.length))));
 
 function getLongest(letters, words) {
   var longest = [""];
