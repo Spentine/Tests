@@ -114,9 +114,11 @@ document.addEventListener("mousemove", (e) => {
 });
 document.addEventListener("gamepadconnected", (e) => {
   controllerIndex = e.gamepad.index;
+  console.log("Controller connected!");
 });
 document.addEventListener("gamepaddisconnected", (e) => {
   controllerIndex = null;
+  console.log("Controller disconnected!");
 });
 </script>
 </head>
