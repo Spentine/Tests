@@ -23,8 +23,6 @@ body {
 </style>
 
 <script>
-
-// JavaScript here
 var canvas = null;
 var ctx = null;
 var a1x = 0;
@@ -53,7 +51,6 @@ function render() {
 }
 
 function gamepad(p) {
-  
   const r1 = p.s * 0.2;
   const c = p.s * 0.02;
   
@@ -80,7 +77,6 @@ function gamepad(p) {
   ctx.arc(p.x + r1 + p.s * 0.5 + (r1 * a2x), p.y + r1 + (r1 * a2y), c, 0, 2 * Math.PI);
   ctx.fill();
   ctx.stroke();
-  
 }
 
 function updateValues(i) {
@@ -94,10 +90,18 @@ function updateValues(i) {
 function tick() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  
-  if (controllerIndex !== null) {
-    updateValues(controllerIndex);
+
+  var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+  controllers = gamepads;
+
+  if (controllers) {
+    for (var i = 0; i < controllers.length; i++) {
+      if (controllers[i]) {
+        updateValues(i);
+      }
+    }
   }
+
   render();
   
   window.requestAnimationFrame(tick);
@@ -115,7 +119,6 @@ document.addEventListener("mousemove", (e) => {
 });
 document.addEventListener("gamepadconnected", (e) => {
   controllerIndex = e.gamepad.index;
-  controllers[e.gamepad.index] = e.gamepad;
   console.log("Controller connected!");
 });
 document.addEventListener("gamepaddisconnected", (e) => {
@@ -123,6 +126,7 @@ document.addEventListener("gamepaddisconnected", (e) => {
   console.log("Controller disconnected!");
 });
 </script>
+
 </head>
 <body>
 
