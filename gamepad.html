@@ -84,7 +84,7 @@ function gamepad(p) {
 }
 
 function updateValues(i) {
-  const g = navigator.getGamepads()[i];
+  const g = controllers[i];
   a1x = g.axes[0];
   a1y = g.axes[1];
   a2x = g.axes[2];
