@@ -32,6 +32,7 @@ var a1y = 0;
 var a2x = 0;
 var a2y = 0;
 var controllerIndex = null;
+var controllers = [null, null, null, null];
 
 function main() {
   canvas = document.getElementById("canvas");
@@ -114,6 +115,7 @@ document.addEventListener("mousemove", (e) => {
 });
 document.addEventListener("gamepadconnected", (e) => {
   controllerIndex = e.gamepad.index;
+  controllers[e.gamepad.index] = e.gamepad;
   console.log("Controller connected!");
 });
 document.addEventListener("gamepaddisconnected", (e) => {
