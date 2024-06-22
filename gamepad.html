@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title> gamepad </title>
+<title> kill me </title>
 
 <style>
 
@@ -23,14 +23,14 @@ body {
 </style>
 
 <script>
+
+// JavaScript here
 var canvas = null;
 var ctx = null;
 var a1x = 0;
 var a1y = 0;
 var a2x = 0;
 var a2y = 0;
-var controllerIndex = null;
-var controllers = [null, null, null, null];
 
 function main() {
   canvas = document.getElementById("canvas");
@@ -51,6 +51,7 @@ function render() {
 }
 
 function gamepad(p) {
+  
   const r1 = p.s * 0.2;
   const c = p.s * 0.02;
   
@@ -77,10 +78,11 @@ function gamepad(p) {
   ctx.arc(p.x + r1 + p.s * 0.5 + (r1 * a2x), p.y + r1 + (r1 * a2y), c, 0, 2 * Math.PI);
   ctx.fill();
   ctx.stroke();
+  
 }
 
 function updateValues(i) {
-  const g = controllers[i];
+  const g = navigator.getGamepads()[i];
   a1x = g.axes[0];
   a1y = g.axes[1];
   a2x = g.axes[2];
@@ -90,18 +92,10 @@ function updateValues(i) {
 function tick() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-
-  var gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-  controllers = gamepads;
-
-  if (controllers) {
-    for (var i = 0; i < controllers.length; i++) {
-      if (controllers[i]) {
-        updateValues(i);
-      }
-    }
+  
+  if (controllerIndex !== null) {
+    updateValues(controllerIndex);
   }
-
   render();
   
   window.requestAnimationFrame(tick);
@@ -119,14 +113,11 @@ document.addEventListener("mousemove", (e) => {
 });
 document.addEventListener("gamepadconnected", (e) => {
   controllerIndex = e.gamepad.index;
-  console.log("Controller connected!");
 });
 document.addEventListener("gamepaddisconnected", (e) => {
   controllerIndex = null;
-  console.log("Controller disconnected!");
 });
 </script>
-
 </head>
 <body>
 

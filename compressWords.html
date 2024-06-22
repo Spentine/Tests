@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title> compressing </title>
+
+<script src="englishWords.js"> </script>
+<script>
+
+const allowedChars = "abcdefghijklmnopqrstuvwxyz".split("");
+
+const filteredWords = englishWords.map((word) => {
+  return word.toLowerCase()
+}).filter((word) => {
+  return word.split("").every((letter) => {
+    return allowedChars.includes(letter);
+  });
+})
+
+console.log(filteredWords);
+
+var longest = 0;
+for (let i=0; i<filteredWords.length; i++) {
+  if (filteredWords[i].length > longest) {
+    longest = filteredWords[i].length;
+  }
+}
+
+// const lengthClassifier = Array.from({length: longest}, ()=>[]);
+const lengthClassifierText = Array.from({length: longest}, ()=>"");
+
+for (let i=0; i<filteredWords.length; i++) {
+  // lengthClassifier[filteredWords[i].length-1].push(filteredWords[i]);
+  lengthClassifierText[filteredWords[i].length-1] += filteredWords[i];
+}
+
+// console.log(lengthClassifier);
+console.log(lengthClassifierText);
+
+const lengthClassifierCompressed = Array.from({length: longest}, ()=>null);
+
+async function getCompressed(text) {
+  const encoder = new TextEncoder();
+  const encodedText = encoder.encode(text); // Encode text to Uint8Array
+
+  // Create a ReadableStream from the encoded text
+  const readableStream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encodedText);
+      controller.close();
+    }
+  });
+
+  return readableStream.pipeThrough(new CompressionStream("gzip"));
+}
+
+async function convertStreamToBase64(stream) {
+  const decoder = new TextDecoder('utf-8');
+  let base64Data = '';
+  const reader = stream.getReader();
+
+  let { done, value } = await reader.read();
+  while (!done) {
+    const chunk = decoder.decode(value);
+    base64Data += btoa(chunk);
+    ({ done, value } = await reader.read());
+  }
+
+  reader.releaseLock();
+  return base64Data;
+}
+
+async function setCompression(i) {
+  // getCompressed returns another ReadableStream
+  // convertStreamToBase64 should return text
+  lengthClassifierCompressed[i] = await convertStreamToBase64(getCompressed(lengthClassifierText[i]));
+}
+
+for (let i=0; i<lengthClassifierText.length; i++) {
+  setCompression(i);
+}
+
+console.log(lengthClassifierCompressed);
+
+</script>
+
+<style>
+body {
+  background-color: #000000;
+}
+</style>
+</head>
+<body>
+
+
+
+</body>
+</html>
