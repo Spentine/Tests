@@ -57,11 +57,11 @@ var rPos = {
 function rCalc() {
   rPos.x = 0;
   rPos.y = 0;
-  if (canvas.width > canvas.height) {
+  if (canvas.width * 2 > canvas.height) {
     rPos.s = Math.floor(canvas.height / 20);
     rPos.x = canvas.width * 0.5 - rPos.s * 5;
   } else {
-    rPos.s = Math.floor(canvas.width / 20);
+    rPos.s = Math.floor(canvas.width / 10);
     rPos.x = canvas.width * 0.5 - rPos.s * 5;
     rPos.y = canvas.height * 0.5 - rPos.s * 10;
   }
@@ -160,6 +160,7 @@ document.addEventListener("keypress", (event) => {
   if (event.code === "Space") {
     console.log({"board": board, "type": "mono"});
     navigator.clipboard.writeText(JSON.stringify({"board": board, "type": "mono"}));
+    alert("Copied!");
   } else if (event.code === "KeyR") {
     board = Array.from({ length: 20 }, () => Array.from({ length: 10 }, () => 0));
   } else if (event.code === "KeyV") {
