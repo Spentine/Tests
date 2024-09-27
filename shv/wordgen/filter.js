@@ -33,17 +33,21 @@ function order() {
   var s = "";
   common.forEach(pair => {
     s += "\n" + pair[0] + "\t" + pair[1];
-    // s += pair[0];
+    s += pair[0];
   });
   console.log(s);
 }
 
 function filterWords(allowedCharacters) {
   const filtered = readLex.filter(word => {
+    var w = false;
+    var v = false;
     for (let i of word[1]) {
-      if (!allowedCharacters.includes(i)) return false;
+      // if (!allowedCharacters.includes(i)) return false;
+      w = w || (i === "𐑑");
+      v = v || (i === "𐑐");
     }
-    return true;
+    return w && v;
   });
   filtered.sort((a, b) => b[1].length - a[1].length);
   return filtered;
@@ -57,5 +61,4 @@ function displayWords(fWords) {
   console.log(s);
 }
 
-
-displayWords(filterWords("𐑦𐑑𐑩𐑕"));
+displayWords(filterWords("𐑦𐑑𐑩𐑕𐑯𐑤𐑒𐑛𐑟𐑮𐑪"));
