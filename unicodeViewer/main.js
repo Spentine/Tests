@@ -36,7 +36,7 @@ function renderUnicodeExplorer(change) {
   const diff = container.childNodes[2].getBoundingClientRect().top - container.childNodes[1].getBoundingClientRect().top;
   
   scrollLocation += change;
-  if (scrollLocation < 0) {
+  if (scrollLocation < -32) {
     scrollLocation = 0;
   }
   unicodePosition.value = scrollLocation;
