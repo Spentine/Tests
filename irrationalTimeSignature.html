@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        background-color: #222222;
+        color: #ffffff;
+      }
+      
+      h1 {
+        font-size: 40px;
+        margin: 8px;
+      }
+      
+      p, label, td {
+        font-size: 24px;
+        margin: 4px;
+      }
+      
+      td {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      
+      input {
+        background-color: #333333;
+        color: #ffffff;
+        font-size: 24px;
+        width: 100px;
+      }
+      
+      .centered {
+        display: flex;
+        justify-content: center;
+      }
+      
+      .container {
+        width: 720px;
+      }
+      
+      .centeredText {
+        text-align: center;
+      }
+    </style>
+    <script>
+      /*
+      algorithm timeSig specification: convert a fraction (a/b) into the closest fraction of the form (n/2^m) where m is an integer. m may be chosen arbitrarily, providing a table of values.
+
+      given a value m, find the closest number n such that (n/2^m) is as close to n/d as possible.
+
+      n/2^m = a/b
+      n = (2^m)*a/b
+
+      n may not result in an integer so use round() to approximate it
+
+      n = round(2^m * a / b)
+
+      algorithm bpmConv specification: given an original time signature (a/b) and a resultant time signature (c/d), change the bpm such that the length of a measure in a/b is equivalent in c/d, also considering that the bpm is based on the denominators of the signatures.
+
+      bpm / (a/b) = length of measure
+      newBpm = length of measure * (c/d)
+
+      combining the two equations together yields:
+
+      newBpm = bpm * bc/ad
+      */
+      function main() {
+        function getDec(amount, decPlaces) {
+          const integer = String(Math.floor(amount));
+          var decimal = "";
+          for (let i=0; i<decPlaces; i++) {
+            amount %= 1;
+            amount *= 10;
+            decimal += String(Math.floor(amount));
+          }
+          return {"int": integer, "dec": decimal};
+        }
+        
+        function convert() {
+          function timeSig(a, b, m) {
+            return Math.round(Math.pow(2, m) * a / b);
+          }
+          
+          function bpmConv(bpm, a, b, c, d) {
+            // return bpm * (b * c) / (a * d);
+            return bpm * d / b;
+            // return bpm * c / a;
+          }
+          
+          function loss(a, b) {
+            return Math.abs(1 - (a / b));
+          }
+          
+          // start values
+          const sNumerator = Number(numeratorElement.value);
+          const sDenominator = Number(denominatorElement.value);
+          const sBPM = Number(bpmElement.value);
+          
+          // delete table
+          while (outputElement.firstChild) {
+            outputElement.removeChild(outputElement.lastChild);
+          }
+          
+          const row = document.createElement("tr");
+          const signatureElement = document.createElement("td");
+          const bpmDispElement = document.createElement("td");
+          const lossElement = document.createElement("td");
+          
+          signatureElement.innerText = "Signature";
+          bpmDispElement.innerText = "BPM";
+          lossElement.innerText = "Loss (%)";
+          
+          row.appendChild(signatureElement);
+          row.appendChild(bpmDispElement);
+          row.appendChild(lossElement);
+          outputElement.appendChild(row);
+            
+          for (let dP=0; dP<20; dP++) { // denominator power
+            // calculations
+            const numerator = timeSig(sNumerator, sDenominator, dP);
+            const bpm = bpmConv(sBPM, sNumerator, sDenominator, numerator, Math.pow(2, dP));
+            
+            if (numerator !== 0) {
+              // display calculations
+              const lossAmount = loss(sNumerator / sDenominator, numerator / Math.pow(2, dP));
+              const signature = `${numerator} / ${Math.pow(2, dP)}`;
+              const bpmObj = getDec(bpm, 6);
+              const bpmStr = bpm === Infinity ? "Infinity" : (
+                isNaN(bpm) ? "NaN" : `${bpmObj.int}.${bpmObj.dec}`
+              );
+              const lossObj = getDec(100 * lossAmount, 6);
+              const lossStr = lossAmount === Infinity ? "Infinity" : (
+                isNaN(lossAmount) ? "NaN" : `${lossObj.int}.${lossObj.dec}%`
+              );
+              
+              // make row and display
+              const row = document.createElement("tr");
+              const signatureElement = document.createElement("td");
+              const bpmDispElement = document.createElement("td");
+              const lossElement = document.createElement("td");
+              
+              signatureElement.innerText = signature;
+              bpmDispElement.innerText = bpmStr;
+              lossElement.innerText = lossStr;
+              
+              row.appendChild(signatureElement);
+              row.appendChild(bpmDispElement);
+              row.appendChild(lossElement);
+              
+              outputElement.appendChild(row);
+            }
+          }
+        }
+        
+        const numeratorElement = document.getElementById("numerator");
+        const denominatorElement = document.getElementById("denominator");
+        const bpmElement = document.getElementById("bpm");
+        const outputElement = document.getElementById("output");
+        
+        numeratorElement.addEventListener("input", convert);
+        denominatorElement.addEventListener("input", convert);
+        bpmElement.addEventListener("input", convert);
+        
+        window.convert = convert;
+      }
+      
+      document.addEventListener("DOMContentLoaded", main);
+    </script>
+  </head>
+  <body>
+    <div class="centered">
+      <div class="container">
+        <h1 class="centeredText"> Irrational Time Signature </h1>
+        <hr>
+        <p class="centeredText"> numerator, denominator </p>
+        <div class="centered">
+          <input id="numerator">
+          <p> / </p>
+          <input id="denominator">
+        </div>
+        <p class="centeredText"> bpm </p>
+        <div class="centered">
+          <input id="bpm">
+        </div>
+        <hr>
+        <table id="output">
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
