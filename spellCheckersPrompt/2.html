@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpellCheckers Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            gap: 1px;
+            background-color: grey;
+            margin-bottom: 20px;
+        }
+
+        .tile {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .tile:nth-child(odd) {
+            background-color: maroon;
+        }
+
+        .tile:nth-child(even) {
+            background-color: cream;
+        }
+
+        .highlight {
+            background-color: red !important;
+        }
+
+        .selected {
+            border: 3px solid yellow;
+        }
+
+        .player1-piece {
+            background-color: white;
+            border: 2px solid black;
+        }
+
+        .player2-piece {
+            background-color: black;
+            border: 2px solid white;
+            transform: rotate(180deg);
+        }
+
+        #controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background-color: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button:disabled {
+            background-color: grey;
+            cursor: not-allowed;
+        }
+
+        #confirmExchangeBtn {
+            display: none;
+        }
+
+        #endScreen {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 2px solid black;
+            padding: 30px;
+            text-align: center;
+        }
+
+        #endScreen h2 {
+            margin-bottom: 20px;
+        }
+
+        #endScreen button {
+            padding: 10px 20px;
+            background-color: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<h1>SpellCheckers</h1>
+<div id="board"></div>
+
+<div id="controls">
+    <button id="exchangeBtn" class="button">Exchange</button>
+    <button id="confirmExchangeBtn" class="button">Confirm Exchange</button>
+    <button id="exchangeAllBtn" class="button">Exchange All</button>
+</div>
+
+<div id="endScreen">
+    <h2 id="winnerText"></h2>
+    <button onclick="goToMainMenu()">Main Menu</button>
+</div>
+
+<script>
+class SpellCheckers {
+    constructor(getPiece, validWords, endMoveCount = 3, endMoveCountTotal = 15, endGamePieces = 10) {
+        this.getPiece = getPiece;
+        this.validWords = validWords;
+        this.endMoveCount = endMoveCount;
+        this.endMoveCountTotal = endMoveCountTotal;
+        this.endGamePieces = endGamePieces;
+        this.board = this.initializeBoard();
+        this.turn = 1;  // Player 1 starts
+        this.captures = { 1: 0, 2: 0 };
+        this.exchangedAll = { 1: true, 2: true };
+        this.selectedPiece = null;  // Currently selected piece for move
+        this.winner = null;
+        this.movesWithoutCapture = 0;
+        this.renderBoard();
+    }
+
+    initializeBoard() {
+        let board = [];
+        // Initialize board as 8x8 grid
+        for (let row = 0; row < 8; row++) {
+            let rowArray = [];
+            for (let col = 0; col < 8; col++) {
+                let player = row < 3 ? 1 : (row > 4 ? 2 : null);
+                let piece = player ? new Piece(this.getPiece(), player) : null;
+                rowArray.push(piece);
+            }
+            board.push(rowArray);
+        }
+        return board;
+    }
+
+    renderBoard() {
+        const boardDiv = document.getElementById('board');
+        boardDiv.innerHTML = ''; // Clear previous state
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                let tile = document.createElement('div');
+                tile.classList.add('tile');
+                tile.dataset.row = row;
+                tile.dataset.col = col;
+
+                let piece = this.board[row][col];
+                if (piece) {
+                    tile.innerHTML = piece.letter;
+                    tile.classList.add(piece.player === 1 ? 'player1-piece' : 'player2-piece');
+                }
+
+                tile.onclick = () => this.handleTileClick(row, col);
+                boardDiv.appendChild(tile);
+            }
+        }
+    }
+
+    handleTileClick(row, col) {
+        const piece = this.board[row][col];
+        if (piece && piece.player === this.turn) {
+            this.selectedPiece = { row, col };
+            this.highlightValidMoves(row, col);
+        } else if (this.selectedPiece) {
+            this.move(this.selectedPiece.row, this.selectedPiece.col, row, col);
+            this.selectedPiece = null;
+        }
+    }
+
+    highlightValidMoves(initialRow, initialCol) {
+        const validMoves = this.allValidMoves(initialRow, initialCol);
+        this.renderBoard();
+        validMoves.forEach(pos => {
+            const tile = document.querySelector(`[data-row='${pos.row}'][data-col='${pos.col}']`);
+            if (tile) tile.classList.add('highlight');
+        });
+    }
+
+    move(initialRow, initialCol, targetRow, targetCol, validate = true) {
+        if (!this.isValidMove(initialRow, initialCol, targetRow, targetCol)) return;
+
+        // Perform move
+        this.board[targetRow][targetCol] = this.board[initialRow][initialCol];
+        this.board[initialRow][initialCol] = null;
+
+        // Check for captures after move
+        this.checkCaptures();
+
+        // End turn
+        this.endTurn();
+    }
+
+    isValidMove(initialRow, initialCol, targetRow, targetCol) {
+        // Basic movement validation, movement like a queen
+        const rowDiff = Math.abs(targetRow - initialRow);
+        const colDiff = Math.abs(targetCol - initialCol);
+        return rowDiff === colDiff || rowDiff === 0 || colDiff === 0;
+    }
+
+    jump(initialRow, initialCol, targetRow, targetCol, validate = true) {
+        const midRow = (initialRow + targetRow) / 2;
+        const midCol = (initialCol + targetCol) / 2;
+        if (!this.isValidJump(initialRow, initialCol, targetRow, targetCol, midRow, midCol)) return;
+
+        // Perform jump
+        this.board[targetRow][targetCol] = this.board[initialRow][initialCol];
+        this.board[initialRow][initialCol] = null;
+        this.board[midRow][midCol] = null;  // Jumped piece is removed
+
+        // Check for captures after jump
+        this.checkCaptures();
+
+        // End turn
+        this.endTurn();
+    }
+
+    isValidJump(initialRow, initialCol, targetRow, targetCol, midRow, midCol) {
+        // Only jumps in straight lines, no diagonal jumps
+        const rowDiff = Math.abs(targetRow - initialRow);
+        const colDiff = Math.abs(targetCol - initialCol);
+        return rowDiff === 2 && colDiff === 0 || rowDiff === 0 && colDiff === 2;
+    }
+
+    exchange(positions, validate = true) {
+        positions.forEach(pos => {
+            const { row, col } = pos;
+            this.board[row][col].letter = this.getPiece();
+        });
+
+        this.endTurn();
+    }
+
+    exchangeAll(validate = true) {
+        if (this.exchangedAll[this.turn]) {
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    if (this.board[row][col] && this.board[row][col].player === this.turn) {
+                        this.board[row][col].letter = this.getPiece();
+                    }
+                }
+            }
+            this.exchangedAll[this.turn] = false;
+            this.endTurn();
+        }
+    }
+
+    allValidMoves(initialRow, initialCol) {
+        const validMoves = [];
+        // Allow queen-like movement in straight lines and diagonals
+        for (let i = 0; i < 8; i++) {
+            if (i !== initialCol) validMoves.push({ row: initialRow, col: i });  // Horizontal moves
+            if (i !== initialRow) validMoves.push({ row: i, col: initialCol });  // Vertical moves
+            if (i !== 0) {
+                if (initialRow + i < 8 && initialCol + i < 8) validMoves.push({ row: initialRow + i, col: initialCol + i }); // Down-right diagonal
+                if (initialRow - i >= 0 && initialCol - i >= 0) validMoves.push({ row: initialRow - i, col: initialCol - i }); // Up-left diagonal
+            }
+        }
+        return validMoves;
+    }
+
+    checkCaptures() {
+        // Logic for checking captures based on valid words (simplified)
+        const wordsFormed = this.getWordsFromBoard();
+        wordsFormed.forEach(word => {
+            if (this.validWords.has(word)) {
+                this.captureWord(word);
+            }
+        });
+    }
+
+    getWordsFromBoard() {
+        // Logic to extract words formed on the board (simplified)
+        return [];
+    }
+
+    captureWord(word) {
+        // Remove pieces forming the word and increase capture count
+        this.captures[this.turn] += word.length;
+    }
+
+    endTurn() {
+        // Check if game should end, if not, pass the turn to the other player
+        this.turn = this.turn === 1 ? 2 : 1;
+        this.renderBoard();
+    }
+
+    // Utility function to generate pieces for demo purposes
+    static randomLetter() {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return letters[Math.floor(Math.random() * letters.length)];
+    }
+}
+
+class Piece {
+    constructor(letter, player) {
+        this.letter = letter;
+        this.player = player;
+    }
+}
+
+function startGame() {
+    const validWords = new Set(['HELLO', 'WORLD', 'CHECKER']);
+    const getPiece = SpellCheckers.randomLetter;
+    window.game = new SpellCheckers(getPiece, validWords);
+}
+
+function goToMainMenu() {
+    document.getElementById('endScreen').style.display = 'none';
+    startGame();
+}
+
+document.getElementById('exchangeBtn').onclick = () => {
+    // Logic for exchanging pieces
+    document.getElementById('confirmExchangeBtn').style.display = 'block'; // Show confirm button
+};
+
+document.getElementById('confirmExchangeBtn').onclick = () => {
+    // Logic for confirming exchange
+    game.exchange([{ row: 1, col: 1 }]);  // Example
+    document.getElementById('confirmExchangeBtn').style.display = 'none';  // Hide confirm button
+};
+
+document.getElementById('exchangeAllBtn').onclick = () => {
+    game.exchangeAll();
+};
+
+startGame();
+</script>
+
+</body>
+</html>

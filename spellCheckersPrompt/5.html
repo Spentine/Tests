@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpellCheckers Game</title>
+<style>
+  body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+  #game-container { text-align: center; }
+  #board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 2px solid black; margin: 20px auto; transform: rotate(180deg); }
+  .tile { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border: 1px solid grey; font-size: 1.5rem; cursor: pointer; }
+  .cream { background-color: #d8ba79; }
+  .maroon { background-color: #d6cfa7; }
+  .player1 { color: black; background-color: white; border: 1px solid black; transform: rotate(180deg); }
+  .player2 { color: white; background-color: black; border: 1px solid white; }
+  .highlight-move { background-color: rgba(255, 0, 0, 0.3); }
+  .highlight-exchange { background-color: rgba(0, 255, 0, 0.3); }
+  #actions { margin: 10px; }
+  button { margin: 5px; padding: 8px; font-size: 1rem; }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <h1>SpellCheckers Game</h1>
+  <div id="board"></div>
+  <div id="actions">
+    <button id="startGame">Start Game</button>
+    <button id="exchange">Exchange</button>
+    <button id="exchangeAll">Exchange All</button>
+  </div>
+  <p id="status"></p>
+</div>
+
+<script>
+  class Piece {
+    constructor(letter, player) {
+      this.letter = letter;
+      this.player = player;
+    }
+  }
+
+  class SpellCheckers {
+    constructor(getPiece, validWords, endMoveCount = 3, endMoveCountTotal = 15, endGamePieces = 10) {
+      this.getPiece = getPiece;
+      this.validWords = validWords;
+      this.endMoveCount = endMoveCount;
+      this.endMoveCountTotal = endMoveCountTotal;
+      this.endGamePieces = endGamePieces;
+      this.board = Array.from({ length: 8 }, () => Array(8).fill(null));
+      this.turn = 1;
+      this.captures = { 1: 0, 2: 0 };
+      this.exchangedAll = { 1: true, 2: true };
+      this.winner = null;
+      this.moveCount = 0;
+      this.selectedPiece = null;
+      this.highlightedTiles = [];
+      this.initializeBoard();
+    }
+
+    initializeBoard() {
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 8; col++) {
+          this.board[row][col] = new Piece(this.getPiece(), 2);
+          this.board[7 - row][col] = new Piece(this.getPiece(), 1);
+        }
+      }
+      this.updateBoardUI();
+    }
+
+    isInBounds(row, col) {
+      return row >= 0 && col >= 0 && row < 8 && col < 8;
+    }
+
+    getPieceAt(row, col) {
+      return this.isInBounds(row, col) ? this.board[row][col] : null;
+    }
+
+    selectPiece(row, col) {
+      const piece = this.getPieceAt(row, col);
+      if (piece && piece.player === this.turn) {
+        this.clearHighlights();
+        this.selectedPiece = { row, col };
+        this.highlightValidMoves(row, col);
+      } else if (this.selectedPiece) {
+        if (this.highlightedTiles.some(([r, c]) => r === row && c === col)) {
+          this.movePiece(this.selectedPiece.row, this.selectedPiece.col, row, col);
+        }
+        this.clearHighlights();
+      }
+    }
+
+    movePiece(initialRow, initialColumn, targetRow, targetColumn) {
+      if (this.isValidMove(initialRow, initialColumn, targetRow, targetColumn)) {
+        this.board[targetRow][targetColumn] = this.board[initialRow][initialColumn];
+        this.board[initialRow][initialColumn] = null;
+        this.turn = 3 - this.turn; // Switch turn
+        this.updateBoardUI();
+      }
+    }
+
+    highlightValidMoves(row, col) {
+      const directions = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]];
+      directions.forEach(([dr, dc]) => {
+        let r = row + dr;
+        let c = col + dc;
+        while (this.isInBounds(r, c) && !this.getPieceAt(r, c)) {
+          this.highlightTile(r, c);
+          r += dr;
+          c += dc;
+        }
+      });
+    }
+
+    highlightTile(row, col) {
+      const tile = document.getElementById(`tile-${row}-${col}`);
+      if (tile) {
+        tile.classList.add('highlight-move');
+        this.highlightedTiles.push([row, col]);
+      }
+    }
+
+    clearHighlights() {
+      this.highlightedTiles.forEach(([row, col]) => {
+        const tile = document.getElementById(`tile-${row}-${col}`);
+        if (tile) tile.classList.remove('highlight-move');
+      });
+      this.highlightedTiles = [];
+      this.selectedPiece = null;
+    }
+
+    isValidMove(initialRow, initialColumn, targetRow, targetColumn) {
+      const deltaRow = targetRow - initialRow;
+      const deltaCol = targetColumn - initialColumn;
+      return (
+        (Math.abs(deltaRow) === Math.abs(deltaCol) || deltaRow === 0 || deltaCol === 0) &&
+        this.isPathClear(initialRow, initialColumn, targetRow, targetColumn)
+      );
+    }
+
+    isPathClear(initialRow, initialColumn, targetRow, targetColumn) {
+      const deltaRow = Math.sign(targetRow - initialRow);
+      const deltaCol = Math.sign(targetColumn - initialColumn);
+      let row = initialRow + deltaRow;
+      let col = initialColumn + deltaCol;
+      while (row !== targetRow || col !== targetColumn) {
+        if (this.getPieceAt(row, col)) return false;
+        row += deltaRow;
+        col += deltaCol;
+      }
+      return true;
+    }
+
+    updateBoardUI() {
+      const boardElem = document.getElementById('board');
+      boardElem.innerHTML = '';
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const tile = document.createElement('div');
+          tile.id = `tile-${row}-${col}`;
+          tile.classList.add('tile', (row + col) % 2 === 0 ? 'cream' : 'maroon');
+          tile.onclick = () => this.selectPiece(row, col);
+
+          const piece = this.board[row][col];
+          if (piece) {
+            tile.classList.add(piece.player === 1 ? 'player1' : 'player2');
+            tile.textContent = piece.letter;
+          }
+          boardElem.appendChild(tile);
+        }
+      }
+    }
+  }
+
+  const getPiece = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    return letters.charAt(Math.floor(Math.random() * letters.length));
+  };
+
+  const validWords = new Set(['AB', 'AC', 'ED', 'EA']);
+  let game = null;
+
+  document.getElementById('startGame').onclick = () => {
+    game = new SpellCheckers(getPiece, validWords);
+    document.getElementById('status').textContent = 'Player 1\'s turn';
+  };
+
+</script>
+</body>
+</html>

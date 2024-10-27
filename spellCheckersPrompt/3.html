@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpellCheckers</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 2px solid black;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            border: 1px solid gray;
+        }
+        .light {
+            background-color: #d8ba79;
+        }
+        .dark {
+            background-color: #d6cfa7;
+        }
+        .highlight {
+            background-color: rgba(255, 0, 0, 0.4);
+        }
+        .player1 {
+            background-color: white;
+            color: black;
+        }
+        .player2 {
+            background-color: black;
+            color: white;
+            transform: rotate(180deg);
+        }
+        #controls {
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="board"></div>
+<div id="controls">
+    <button id="exchangeBtn">Exchange</button>
+    <button id="exchangeAllBtn">Exchange All</button>
+    <button id="confirmExchangeBtn" style="display:none;">Confirm Exchange</button>
+</div>
+
+<script>
+class SpellCheckers {
+    constructor(getPiece, validWords) {
+        this.getPiece = getPiece;
+        this.validWords = validWords;
+        this.board = [];
+        this.captures = { 1: 0, 2: 0 };
+        this.exchangedAll = { 1: true, 2: true };
+        this.turn = 1; // Player 1 starts
+        this.initBoard();
+    }
+
+    initBoard() {
+        const boardElement = document.getElementById('board');
+        boardElement.innerHTML = '';
+        this.board = [];
+
+        for (let row = 0; row < 8; row++) {
+            this.board[row] = [];
+            for (let col = 0; col < 8; col++) {
+                let piece = null;
+                if (row < 3) {
+                    piece = new Piece(this.getPiece(), 2); // Player 2 at top
+                } else if (row > 4) {
+                    piece = new Piece(this.getPiece(), 1); // Player 1 at bottom
+                }
+                this.board[row][col] = piece;
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                if ((row + col) % 2 === 0) {
+                    cell.classList.add('light');
+                } else {
+                    cell.classList.add('dark');
+                }
+
+                if (piece) {
+                    cell.innerHTML = piece.letter;
+                    cell.classList.add(piece.player === 1 ? 'player1' : 'player2');
+                }
+
+                cell.addEventListener('click', () => this.handleCellClick(row, col));
+                boardElement.appendChild(cell);
+            }
+        }
+    }
+
+    handleCellClick(row, col) {
+        const piece = this.board[row][col];
+        if (piece && piece.player === this.turn) {
+            const validMoves = this.allValidMoves(row, col);
+            const validJumps = this.allValidJumps(row, col);
+            const validPositions = [...validMoves, ...validJumps];
+
+            this.clearHighlights();
+            validPositions.forEach(pos => {
+                const cell = document.getElementById('board').children[pos.row * 8 + pos.col];
+                cell.classList.add('highlight');
+            });
+        }
+    }
+
+    clearHighlights() {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(cell => cell.classList.remove('highlight'));
+    }
+
+    allValidMoves(initialRow, initialCol) {
+        const validMoves = [];
+        const piece = this.board[initialRow][initialCol];
+        const directions = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]];
+
+        for (const [dr, dc] of directions) {
+            let r = initialRow + dr;
+            let c = initialCol + dc;
+            while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+                if (this.board[r][c]) break; // Stop if there's a piece in the way
+                validMoves.push({ row: r, col: c });
+                r += dr;
+                c += dc;
+            }
+        }
+        return validMoves;
+    }
+
+    allValidJumps(initialRow, initialCol) {
+        const validJumps = [];
+        const directions = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        for (const [dr, dc] of directions) {
+            const r = initialRow + dr;
+            const c = initialCol + dc;
+            const r2 = r + dr;
+            const c2 = c + dc;
+
+            if (r >= 0 && r < 8 && c >= 0 && c < 8 && r2 >= 0 && r2 < 8 && c2 >= 0 && c2 < 8) {
+                if (this.board[r][c] && !this.board[r2][c2]) {
+                    validJumps.push({ row: r2, col: c2 });
+                }
+            }
+        }
+        return validJumps;
+    }
+
+    exchange(positions) {
+        positions.forEach(pos => {
+            this.board[pos.row][pos.col] = new Piece(this.getPiece(), this.turn);
+        });
+        this.renderBoard();
+    }
+
+    exchangeAll() {
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = this.board[row][col];
+                if (piece && piece.player === this.turn) {
+                    this.board[row][col] = new Piece(this.getPiece(), this.turn);
+                }
+            }
+        }
+        this.renderBoard();
+        this.exchangedAll[this.turn] = false;
+    }
+
+    renderBoard() {
+        this.initBoard();
+    }
+
+    static randomLetter() {
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return letters[Math.floor(Math.random() * letters.length)];
+    }
+}
+
+class Piece {
+    constructor(letter, player) {
+        this.letter = letter;
+        this.player = player;
+    }
+}
+
+function startGame() {
+    const validWords = new Set(['HELLO', 'WORLD', 'CHECKER']);
+    const getPiece = SpellCheckers.randomLetter;
+    window.game = new SpellCheckers(getPiece, validWords);
+}
+
+document.getElementById('exchangeBtn').onclick = () => {
+    document.getElementById('confirmExchangeBtn').style.display = 'block'; // Show confirm button
+};
+
+document.getElementById('confirmExchangeBtn').onclick = () => {
+    game.exchange([{ row: 1, col: 1 }]);  // Example
+    document.getElementById('confirmExchangeBtn').style.display = 'none';  // Hide confirm button
+};
+
+document.getElementById('exchangeAllBtn').onclick = () => {
+    game.exchangeAll();
+};
+
+startGame();
+</script>
+
+</body>
+</html>

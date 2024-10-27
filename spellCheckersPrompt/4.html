@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpellCheckers Game</title>
+<style>
+  /* Styling for the board and pieces */
+  body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+  #game-container { text-align: center; }
+  #board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 2px solid black; margin: 20px auto; }
+  .tile { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border: 1px solid grey; font-size: 1.5rem; }
+  .cream { background-color: #f5f5dc; }
+  .maroon { background-color: #800000; }
+  .player1 { color: black; background-color: white; border: 1px solid black; }
+  .player2 { color: white; background-color: black; border: 1px solid white; transform: rotate(180deg); }
+  .highlight-move { background-color: rgba(255, 0, 0, 0.3); }
+  .highlight-exchange { background-color: rgba(0, 255, 0, 0.3); }
+  #actions { margin: 10px; }
+  button { margin: 5px; padding: 8px; font-size: 1rem; }
+</style>
+</head>
+<body>
+
+<div id="game-container">
+  <h1>SpellCheckers Game</h1>
+  <div id="board"></div>
+  <div id="actions">
+    <button id="startGame">Start Game</button>
+    <button id="exchange">Exchange</button>
+    <button id="exchangeAll">Exchange All</button>
+  </div>
+  <p id="status"></p>
+</div>
+
+<script>
+  class Piece {
+    constructor(letter, player) {
+      this.letter = letter;
+      this.player = player;
+    }
+  }
+
+  class SpellCheckers {
+    constructor(getPiece, validWords, endMoveCount = 3, endMoveCountTotal = 15, endGamePieces = 10) {
+      this.getPiece = getPiece;
+      this.validWords = validWords;
+      this.endMoveCount = endMoveCount;
+      this.endMoveCountTotal = endMoveCountTotal;
+      this.endGamePieces = endGamePieces;
+      this.board = Array.from({ length: 8 }, () => Array(8).fill(null));
+      this.turn = 1;
+      this.captures = { 1: 0, 2: 0 };
+      this.exchangedAll = { 1: true, 2: true };
+      this.winner = null;
+      this.moveCount = 0;
+      this.initializeBoard();
+    }
+
+    initializeBoard() {
+      for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 8; col++) {
+          this.board[row][col] = new Piece(this.getPiece(), 1);
+          this.board[7 - row][col] = new Piece(this.getPiece(), 2);
+        }
+      }
+      this.updateBoardUI();
+    }
+
+    isInBounds(row, col) {
+      return row >= 0 && col >= 0 && row < 8 && col < 8;
+    }
+
+    getPieceAt(row, col) {
+      return this.isInBounds(row, col) ? this.board[row][col] : null;
+    }
+
+    isPathClear(startRow, startCol, endRow, endCol) {
+      const deltaRow = Math.sign(endRow - startRow);
+      const deltaCol = Math.sign(endCol - startCol);
+      let row = startRow + deltaRow;
+      let col = startCol + deltaCol;
+      while (row !== endRow || col !== endCol) {
+        if (this.getPieceAt(row, col)) return false;
+        row += deltaRow;
+        col += deltaCol;
+      }
+      return true;
+    }
+
+    isValidMove(initialRow, initialColumn, targetRow, targetColumn) {
+      const piece = this.getPieceAt(initialRow, initialColumn);
+      if (!piece || piece.player !== this.turn || this.getPieceAt(targetRow, targetColumn)) return false;
+      const deltaRow = targetRow - initialRow;
+      const deltaCol = targetColumn - initialColumn;
+      return (Math.abs(deltaRow) === 0 || Math.abs(deltaCol) === 0 || Math.abs(deltaRow) === Math.abs(deltaCol))
+             && this.isPathClear(initialRow, initialColumn, targetRow, targetColumn);
+    }
+
+    isValidJump(initialRow, initialColumn, targetRow, targetColumn) {
+      const piece = this.getPieceAt(initialRow, initialColumn);
+      const deltaRow = targetRow - initialRow;
+      const deltaCol = targetColumn - initialColumn;
+      const middleRow = initialRow + deltaRow / 2;
+      const middleCol = initialColumn + deltaCol / 2;
+      const middlePiece = this.getPieceAt(middleRow, middleCol);
+      return piece && piece.player === this.turn && middlePiece && !this.getPieceAt(targetRow, targetColumn)
+             && ((Math.abs(deltaRow) === 2 && deltaCol === 0) || (Math.abs(deltaCol) === 2 && deltaRow === 0));
+    }
+
+    getChainedJumps(initialRow, initialColumn) {
+      const directions = [[0, 2], [0, -2], [2, 0], [-2, 0]];
+      const paths = [];
+      const visited = new Set();
+      const search = (row, col, path) => {
+        let foundJump = false;
+        for (const [deltaRow, deltaCol] of directions) {
+          const targetRow = row + deltaRow;
+          const targetCol = col + deltaCol;
+          if (this.isInBounds(targetRow, targetCol) && !visited.has(`${targetRow},${targetCol}`)) {
+            const middleRow = row + deltaRow / 2;
+            const middleCol = col + deltaCol / 2;
+            const middlePiece = this.getPieceAt(middleRow, middleCol);
+            if (middlePiece && !this.getPieceAt(targetRow, targetCol)) {
+              visited.add(`${targetRow},${targetCol}`);
+              path.push([targetRow, targetCol]);
+              search(targetRow, targetCol, path);
+              path.pop();
+              visited.delete(`${targetRow},${targetCol}`);
+              foundJump = true;
+            }
+          }
+        }
+        if (!foundJump && path.length > 0) paths.push([...path]);
+      };
+      search(initialRow, initialColumn, []);
+      return paths;
+    }
+
+    updateBoardUI() {
+      const boardElem = document.getElementById('board');
+      boardElem.innerHTML = '';
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const tile = document.createElement('div');
+          tile.classList.add('tile', (row + col) % 2 === 0 ? 'cream' : 'maroon');
+          const piece = this.board[row][col];
+          if (piece) {
+            tile.classList.add(piece.player === 1 ? 'player1' : 'player2');
+            tile.textContent = piece.letter;
+          }
+          boardElem.appendChild(tile);
+        }
+      }
+    }
+  }
+
+  const getPiece = () => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    return letters.charAt(Math.floor(Math.random() * letters.length));
+  };
+  const validWords = new Set(['EXAMPLE', 'WORDS']);
+  let game = null;
+
+  document.getElementById('startGame').onclick = () => {
+    game = new SpellCheckers(getPiece, validWords);
+  };
+</script>
+</body>
+</html>

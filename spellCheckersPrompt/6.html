@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spell Checkers Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            margin: 20px auto;
+            border: 2px solid #000;
+            background-color: maroon;
+        }
+        .tile {
+            width: 60px;
+            height: 60px;
+            border: 1px solid grey;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            position: relative;
+        }
+        .white-piece {
+            color: white;
+            text-shadow: 0 0 5px black;
+        }
+        .black-piece {
+            color: black;
+            text-shadow: 0 0 5px white;
+            transform: rotate(180deg);
+        }
+        .highlight {
+            background-color: rgba(255, 0, 0, 0.5);
+        }
+        .exchange-highlight {
+            background-color: rgba(0, 255, 0, 0.5);
+        }
+        #gameOver {
+            display: none;
+            text-align: center;
+            font-size: 30px;
+            margin-top: 20px;
+        }
+        #mainMenu {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spell Checkers Game</h1>
+    <div id="board"></div>
+    <div id="gameOver"></div>
+    <div id="mainMenu">
+        <button id="startGame">Start Game</button>
+    </div>
+
+    <script>
+        class Piece {
+            constructor(letter, player) {
+                this.letter = letter;
+                this.player = player;
+            }
+        }
+
+        class SpellCheckers {
+            constructor(getPiece, validWords) {
+                this.getPiece = getPiece;
+                this.validWords = validWords;
+                this.endMoveCount = 3;
+                this.endMoveCountTotal = 15;
+                this.endGamePieces = 10;
+                this.board = this.initializeBoard();
+                this.turn = 1;
+                this.captures = { 1: 0, 2: 0 };
+                this.exchangedAll = { 1: true, 2: true };
+                this.moveCount = 0;
+                this.totalMoveCount = 0;
+                this.winner = null;
+                this.initializeUI();
+            }
+
+            initializeBoard() {
+                const board = Array.from({ length: 8 }, () => Array(8).fill(null));
+                for (let row = 0; row < 3; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        board[row][col] = new Piece(this.getPiece(), 1);
+                    }
+                }
+                for (let row = 5; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        board[row][col] = new Piece(this.getPiece(), 2);
+                    }
+                }
+                return board;
+            }
+
+            initializeUI() {
+                const boardElement = document.getElementById('board');
+                boardElement.innerHTML = '';
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const tile = document.createElement('div');
+                        tile.className = 'tile';
+                        if (this.board[row][col]) {
+                            const piece = document.createElement('div');
+                            piece.className = this.board[row][col].player === 1 ? 'white-piece' : 'black-piece';
+                            piece.textContent = this.board[row][col].letter;
+                            tile.appendChild(piece);
+                        }
+                        tile.addEventListener('click', () => this.handleTileClick(row, col));
+                        boardElement.appendChild(tile);
+                    }
+                }
+                document.getElementById('gameOver').style.display = 'none';
+            }
+
+            handleTileClick(row, col) {
+                const selectedPiece = this.board[row][col];
+                if (selectedPiece && selectedPiece.player === this.turn) {
+                    this.highlightMoves(row, col);
+                }
+            }
+
+            highlightMoves(initialRow, initialColumn) {
+                const validMoves = this.allValidMoves(initialRow, initialColumn);
+                validMoves.forEach(pos => {
+                    const tile = document.querySelectorAll('.tile')[pos.row * 8 + pos.col];
+                    tile.classList.add('highlight');
+                    tile.addEventListener('click', () => this.move(initialRow, initialColumn, pos.row, pos.col));
+                });
+                const validJumps = this.allValidJumps(initialRow, initialColumn);
+                validJumps.forEach(pos => {
+                    const tile = document.querySelectorAll('.tile')[pos.row * 8 + pos.col];
+                    tile.classList.add('highlight');
+                    tile.addEventListener('click', () => this.jump(initialRow, initialColumn, pos.row, pos.col));
+                });
+            }
+
+            allValidMoves(initialRow, initialColumn) {
+                const moves = [];
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        if ((row !== initialRow || col !== initialColumn) && this.isValidMove(initialRow, initialColumn, row, col)) {
+                            moves.push({ row, col });
+                        }
+                    }
+                }
+                return moves;
+            }
+
+            allValidJumps(initialRow, initialColumn) {
+                const jumps = [];
+                const directions = [
+                    { dr: 1, dc: 0 }, // Down
+                    { dr: -1, dc: 0 }, // Up
+                    { dr: 0, dc: 1 }, // Right
+                    { dr: 0, dc: -1 }  // Left
+                ];
+                for (const { dr, dc } of directions) {
+                    const midRow = initialRow + dr;
+                    const midCol = initialColumn + dc;
+                    const targetRow = initialRow + 2 * dr;
+                    const targetCol = initialColumn + 2 * dc;
+                    if (this.isInBounds(midRow, midCol) && this.isInBounds(targetRow, targetCol) &&
+                        this.board[midRow][midCol] && !this.board[targetRow][targetCol]) {
+                        jumps.push({ row: targetRow, col: targetCol });
+                    }
+                }
+                return jumps;
+            }
+
+            isValidMove(initialRow, initialColumn, targetRow, targetColumn) {
+                if (!this.isInBounds(targetRow, targetColumn) || this.board[targetRow][targetColumn]) {
+                    return false;
+                }
+                const piece = this.board[initialRow][initialColumn];
+                return this.isQueenMove(initialRow, initialColumn, targetRow, targetColumn);
+            }
+
+            isQueenMove(initialRow, initialColumn, targetRow, targetColumn) {
+                return (Math.abs(initialRow - targetRow) === Math.abs(initialColumn - targetColumn)) ||
+                       (initialRow === targetRow || initialColumn === targetColumn);
+            }
+
+            isInBounds(row, col) {
+                return row >= 0 && row < 8 && col >= 0 && col < 8;
+            }
+
+            move(initialRow, initialColumn, targetRow, targetColumn) {
+                if (this.isValidMove(initialRow, initialColumn, targetRow, targetColumn)) {
+                    this.board[targetRow][targetColumn] = this.board[initialRow][initialColumn];
+                    this.board[initialRow][initialColumn] = null;
+                    this.checkCaptures();
+                    this.turn = this.turn === 1 ? 2 : 1;
+                    this.moveCount++;
+                    this.totalMoveCount++;
+                    this.checkEndGame();
+                    this.initializeUI();
+                }
+            }
+
+            jump(initialRow, initialColumn, targetRow, targetColumn) {
+                const midRow = (initialRow + targetRow) / 2;
+                const midCol = (initialColumn + targetColumn) / 2;
+
+                if (this.board[initialRow][initialColumn] &&
+                    this.board[midRow][midCol] && !this.board[targetRow][targetColumn]) {
+                    this.board[targetRow][targetColumn] = this.board[initialRow][initialColumn];
+                    this.board[initialRow][initialColumn] = null; // Remove jumped piece
+                    this.board[midRow][midCol] = null; // Remove jumped piece
+                    this.checkCaptures();
+                    this.turn = this.turn === 1 ? 2 : 1;
+                    this.moveCount++;
+                    this.totalMoveCount++;
+                    this.checkEndGame();
+                    this.initializeUI();
+                }
+            }
+
+            checkCaptures() {
+                const captured = new Set();
+                  for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        if (this.board[row][col] && this.board[row][col].player !== this.turn) {
+                            const word = this.getFormedWord(row, col);
+                            if (this.validWords.includes(word) && !captured.has(word)) {
+                                this.captures[this.turn]++;
+                                this.board[row][col] = null; // Capture the opponent's piece
+                                captured.add(word);
+                                this.moveCount = 0; // Reset move count for the turn
+                                this.endMoveCount = 3; // Reset end move count
+                                this.checkEndGame();
+                            }
+                        }
+                    }
+                }
+            }
+
+            getFormedWord(row, col) {
+                // Check horizontally and vertically
+                const wordHoriz = this.getWordFromDirection(row, col, 0, 1) + this.getWordFromDirection(row, col, 0, -1);
+                const wordVert = this.getWordFromDirection(row, col, 1, 0) + this.getWordFromDirection(row, col, -1, 0);
+                return wordHoriz.length >= 2 ? wordHoriz : wordVert;
+            }
+
+            getWordFromDirection(startRow, startCol, rowDelta, colDelta) {
+                let word = '';
+                let row = startRow;
+                let col = startCol;
+
+                while (this.isInBounds(row, col) && this.board[row][col]) {
+                    word += this.board[row][col].letter;
+                    row += rowDelta;
+                    col += colDelta;
+                }
+                return word;
+            }
+
+            checkEndGame() {
+                if (this.totalMoveCount >= this.endMoveCountTotal) {
+                    this.winner = this.captures[1] > this.captures[2] ? 'Player 1 Wins!' : 
+                                  this.captures[2] > this.captures[1] ? 'Player 2 Wins!' : 
+                                  'It\'s a Tie!';
+                    this.displayGameOver();
+                }
+            }
+
+            displayGameOver() {
+                const gameOverElement = document.getElementById('gameOver');
+                gameOverElement.textContent = this.winner;
+                gameOverElement.style.display = 'block';
+                document.getElementById('board').style.display = 'none';
+                document.getElementById('mainMenu').style.display = 'none';
+            }
+        }
+
+        function getPiece() {
+            const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+            const weightedLetters = [
+                { letter: 'A', weight: 780 }, { letter: 'B', weight: 200 },
+                { letter: 'C', weight: 400 }, { letter: 'D', weight: 380 },
+                { letter: 'E', weight: 1100 }, { letter: 'F', weight: 140 },
+                { letter: 'G', weight: 300 }, { letter: 'H', weight: 230 },
+                { letter: 'I', weight: 860 }, { letter: 'J', weight: 21 },
+                { letter: 'K', weight: 97 }, { letter: 'L', weight: 530 },
+                { letter: 'M', weight: 270 }, { letter: 'N', weight: 720 },
+                { letter: 'O', weight: 610 }, { letter: 'P', weight: 280 },
+                { letter: 'Q', weight: 19 }, { letter: 'R', weight: 730 },
+                { letter: 'S', weight: 870 }, { letter: 'T', weight: 670 },
+                { letter: 'U', weight: 330 }, { letter: 'V', weight: 100 },
+                { letter: 'W', weight: 91 }, { letter: 'X', weight: 27 },
+                { letter: 'Y', weight: 160 }, { letter: 'Z', weight: 44 }
+            ];
+
+            const totalWeight = weightedLetters.reduce((sum, letter) => sum + letter.weight, 0);
+            let random = Math.floor(Math.random() * totalWeight);
+            for (const { letter, weight } of weightedLetters) {
+                if (random < weight) return letter;
+                random -= weight;
+            }
+            return 'A'; // Fallback
+        }
+
+        async function loadValidWords() {
+            const response = await fetch('spellcheckersMoves.txt');
+            const text = await response.text();
+            return text.split('\n').map(word => word.trim()).filter(word => word.length > 0);
+        }
+
+        document.getElementById('startGame').addEventListener('click', async () => {
+            const validWords = await loadValidWords();
+            new SpellCheckers(getPiece, validWords);
+            document.getElementById('board').style.display = 'grid';
+            document.getElementById('mainMenu').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
