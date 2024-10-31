@@ -1,0 +1,8 @@
+{
+  "tasks": {
+    "dev": "deno run --watch nextEvent.js"
+  },
+  "imports": {
+    "jsr:@std/assert": "jsr:@std/assert@1"
+  }
+}
