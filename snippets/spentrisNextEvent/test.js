@@ -181,3 +181,23 @@ Deno.test("skip() test 4", () => {
   
   runActions(ga, "nssssssss", ["g2", "a8", "g11", "a16", "g19", "a24", "g27", "a32", "g35"]);
 });
+
+Deno.test("general test 1", () => {
+  const ga = new gaEventHandler(
+    1, // gravOffset
+    2, // gravSpeed
+    4, // arrOffset
+    3, // arrSpeed
+    0  // time
+  );
+  
+  /*
+     time | 0123456789abcdef
+     grav |  # #x # # # #x #
+      arr |     #  #  #  #
+    event | ns    n s   s  
+          |     n  n  n  n
+  */
+  
+  runActions(ga, "nsnnnsnsn", ["g1", "a4", "g6", "a7", "g8", "a10", "g12", "a13", "g15"]);
+});

@@ -32,12 +32,13 @@ export class gaEventHandler { // gravity/arr event handler
     this.prev = null;
   }
   
-  // s (floor((time - o) / s) + 1) + o for next
+  // s * max((floor((time - o) / s) + 1), 0) + o for next
+  // use max bc you don't want to consider things before the offset
   calculateNextGrav() {
-    this.gravNext = this.gravSpeed * (Math.floor((this.time - this.gravOffset) / this.gravSpeed) + 1) + this.gravOffset;
+    this.gravNext = this.gravSpeed * Math.max(Math.floor((this.time - this.gravOffset) / this.gravSpeed) + 1, 0) + this.gravOffset;
   }
   calculateNextArr() {
-    this.arrNext = this.arrSpeed * (Math.floor((this.time - this.arrOffset) / this.arrSpeed) + 1) + this.arrOffset;
+    this.arrNext = this.arrSpeed * Math.max(Math.floor((this.time - this.arrOffset) / this.arrSpeed) + 1, 0) + this.arrOffset;
   }
   
   // creates new event
