@@ -69,7 +69,41 @@ export class gaEventHandler { // gravity/arr event handler
       send gravity first
   */
   
+  /*
+    Extra conditions for infinites
+    
+    inf gravity but not arr:
+      send gravity with same time as current
+    
+    inf arr but not gravity:
+    
+      send arr with same time as current
+    
+    both inf:
+      send gravity with same time as current
+  */
+  
   next() {
+    // gravity is infinite
+    if (this.gravSpeed === Infinity) {
+      return this.createEvent("gravity", this.time);
+    }
+    
+    // arr is infinite
+    if (this.arrSpeed === Infinity) {
+      if (this.arrOffset < this.time) { // arr offset before current time
+        return this.createEvent("arr", this.time); // send arr
+      } else {
+        this.calculateNextGrav(); // calculate next gravity
+        if (this.gravNext > this.arrOffset) { // gravity comes after arr offset
+          return this.createEvent("arr", this.time);
+        }
+        return this.createEvent("gravity", this.gravNext);
+      }
+    }
+    
+    // == normal behavior below ==
+    
     // gravity then arr condition
     if (this.prev && this.arrNext === this.time) {
       // update it otherwise you fall into an infinite loop
@@ -112,7 +146,64 @@ export class gaEventHandler { // gravity/arr event handler
       jump to the next arr event
   */
   
+  /*
+    Extra conditions for infinites
+    
+    inf gravity but not arr:
+      if the last action was arr:
+        send gravity with same time as current
+      if the last action was gravity:
+        jump to the next arr event
+    
+    inf arr but not gravity:
+      if the last action was arr:
+        jump to the next gravity event
+      if the last action was gravity:
+        send arr with same time as current
+    
+    both inf:
+      if the last action was arr:
+        send gravity with same time as current
+      if the last action was gravity:
+        send arr with same time as current
+  */
+  
   skip() {
+    // gravity infinite speed
+    if (this.gravSpeed === Infinity) {
+      if (this.prev) { // if last event was gravity
+        if (this.arrSpeed === Infinity) { // both infinite speed
+          if (this.arrOffset < this.time) {
+            return this.createEvent("arr", this.time);
+          } else {
+            return this.createEvent("arr", this.arrOffset);
+          }
+        } else {
+          this.calculateNextArr();
+          return this.createEvent("arr", this.arrNext);
+        }
+      } else {
+        return this.createEvent("gravity", this.time);
+      }
+    }
+    
+    // arr infinite speed
+    if (this.arrSpeed === Infinity) { // both infinite speed
+      if (this.prev) { // if last event was gravity
+        return this.createEvent("arr", this.time);
+      } else {
+        this.calculateNextGrav();
+        return this.createEvent("gravity", this.gravNext);
+      }
+    }
+    
+    // arr is infinite
+    if (this.arrSpeed === Infinity) {
+      return this.createEvent("gravity", this.time);
+    }
+    
+    // == normal behavior below ==
+    
     if (this.prev === null) {
       return; // there is no case where you skip immediately
     }

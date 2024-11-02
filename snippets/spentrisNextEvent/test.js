@@ -201,3 +201,53 @@ Deno.test("general test 1", () => {
   
   runActions(ga, "nsnnnsnsn", ["g1", "a4", "g6", "a7", "g8", "a10", "g12", "a13", "g15"]);
 });
+
+Deno.test("infinite test 1", () => {
+  const ga = new gaEventHandler(
+    0, // gravOffset
+    Infinity, // gravSpeed
+    2, // arrOffset
+    1, // arrSpeed
+    0  // time
+  );
+  
+  /*
+     time | 0123456789abcdef
+     grav |  (infinity)
+      arr |   ##############
+    event | nnnsnnsn
+  */
+  
+  runActions(ga, "nnnsnnsn", ["g0", "g0", "g0", "a2", "g2", "g2", "a3", "g3"]);
+});
+
+Deno.test("infinite test 2", () => {
+  const ga = new gaEventHandler(
+    2, // gravOffset
+    1, // gravSpeed
+    0, // arrOffset
+    Infinity, // arrSpeed
+    0  // time
+  );
+  
+  /*
+     time | 0123456789abcdef
+     grav |   ##############
+      arr |  (infinity)
+    event | nnnsnnsn
+  */
+  
+  runActions(ga, "nnnsnnsn", ["a0", "a0", "a0", "g2", "a2", "a2", "g3", "a3"]);
+});
+
+Deno.test("infinite test 3", () => {
+  const ga = new gaEventHandler(
+    0, // gravOffset
+    Infinity, // gravSpeed
+    2, // arrOffset
+    Infinity, // arrSpeed
+    0  // time
+  );
+  
+  runActions(ga, "nnnsnsnns", ["g0", "g0", "g0", "a2", "g2", "a2", "g2", "g2", "a2"]);
+});
