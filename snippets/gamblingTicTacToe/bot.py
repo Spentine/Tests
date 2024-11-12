@@ -90,7 +90,7 @@ def recursion(game, depth):
   moves = all_moves(game)
   
   # best position chance
-  best_position = (None, 0)
+  best_position = (None, -1)
   
   for move in moves:
     win_chance = 0

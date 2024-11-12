@@ -1,9 +1,9 @@
 # DrawBoard
 # Created by Lockeb
 
-top = ["X","O"," "]
-mid = ["O","X"," "]   #figure out how to get player/bot input
-low = [" "," ","O"]
+top = ["O","X","O"]
+mid = ["O"," "," "]   #figure out how to get player/bot input
+low = [" ","O","O"]
 
 def DrawBoard():
     r = ("\n---+---+---\n ")

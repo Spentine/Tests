@@ -29,11 +29,13 @@ class Bot:
         else:
             Bot.GainChance(self)
     
-    def RandomMove(self):
+    def RandomMove(self, excludeRow, excludeColumn):
         randomMove = random.randrange(1,4)
+        while randomMove == excludeRow:
+            randomMove = random.randrange(1,4)
         if randomMove == 1:
             randomMove = random.randrange(0,3)
-            while Module4.top[randomMove] == "O" or (Module4.top[randomMove] == "X" and random.randint(1,100) >= self.chance):
+            while Module4.top[randomMove] == "O" or (Module4.top[randomMove] == "X" and random.randint(1,100) >= self.chance) or randomMove == excludeColumn:
                 randomMove = random.randrange(0,3)
             if Module4.top[randomMove] == "X":
                 Bot.Steal(self,"top",randomMove, self.chance)
@@ -42,7 +44,7 @@ class Bot:
                 Bot.GainChance(self)
         elif randomMove == 2:
             randomMove = random.randrange(0,3)
-            while Module4.mid[randomMove] == "O" or (Module4.mid[randomMove] == "X" and random.randint(1,100) >= self.chance):
+            while Module4.mid[randomMove] == "O" or (Module4.mid[randomMove] == "X" and random.randint(1,100) >= self.chance) or randomMove == excludeColumn:
                 randomMove = random.randrange(0,3)
             if Module4.mid[randomMove] == "X":
                 Bot.Steal(self,"mid",randomMove, self.chance)
@@ -51,7 +53,7 @@ class Bot:
                 Bot.GainChance(self)
         elif randomMove == 3:
             randomMove = random.randrange(0,3)
-            while Module4.low[randomMove] == "O" or (Module4.low[randomMove] == "X" and random.randint(1,100) >= self.chance):
+            while Module4.low[randomMove] == "O" or (Module4.low[randomMove] == "X" and random.randint(1,100) >= self.chance) or randomMove == excludeColumn:
                 randomMove = random.randrange(0,3)
             if random.randint(1,100) >= self.chance:
                 while Module4.low[randomMove] == "X":
@@ -95,19 +97,28 @@ class Bot:
         else:
             if Module4.top.count("O") == 2:                                                     #Horizontal Win on Top row
                 try:
-                    Bot.Steal(self,"top", Module4.top.index("X"), self.chance)
+                    if random.randint(1,100) <= self.chance:
+                        Bot.Steal(self,"top", Module4.top.index("X"), self.chance)
+                    else:
+                        Bot.RandomMove(self,1,-1)
                 except:
                     Module4.top[Module4.top.index(" ")] = "O"
                     Bot.GainChance(self)
             elif Module4.mid.count("O") == 2:                                                   #Horizontal Win on Mid row
                 try:
+                    if random.randint(1,100) <= self.chance:
                         Bot.Steal(self,"mid", Module4.mid.index("X"), self.chance)
+                    else:
+                        Bot.RandomMove(self,2,-1)
                 except:
                     Module4.mid[Module4.mid.index(" ")] = "O"
                     Bot.GainChance(self)
             elif Module4.low.count("O") == 2:                                                   #Horizontal Win on Low row
                 try:
-                    Bot.Steal(self,"low", Module4.low.index("X"), self.chance)
+                    if random.randint(1,100) <= self.chance:
+                        Bot.Steal(self,"low", Module4.low.index("X"), self.chance)
+                    else:
+                        Bot.RandomMove(self,3,-1)
                 except:
                     Module4.low[Module4.low.index(" ")] = "O"
                     Bot.GainChance(self)
@@ -115,17 +126,23 @@ class Bot:
                 try:
                     if Module4.top.index("O") == Module4.mid.index("O"):                        #Vertical Win with 2 spaces on top
                         if Module4.low[Module4.top.index("O")] == "X":
-                            Bot.Steal(self,"low",Module4.low.index("X"), self.chance)
+                            if random.randint(1,100) <= self.chance:
+                                Bot.Steal(self,"low",Module4.low.index("X"), self.chance)
+                            else:
+                                Bot.RandomMove(self,-1,mid.index("O"))
                         else:
                             Module4.low[Module4.top.index("O")] = "O"
                             Bot.GainChance(self)
                     else:
-                        print(CauseError)
+                        print(causeError)
                 except:
                     try:
                         if Module4.mid.index("O") == Module4.low.index("O"):                    #Vertical Win with empty space in middle
                             if Module4.top[Module4.mid.index("O")] == "X":
-                                Bot.Steal(self,"top",Module4.top.index("X"), self.chance)
+                                if random.randint(1,100) <= self.chance:
+                                    Bot.Steal(self,"top",Module4.top.index("X"), self.chance)
+                                else:
+                                    Bot.RandomMove(self,-1,mid.index("O"))
                             else:
                                 Module4.top[Module4.mid.index("O")] = "O"
                                 Bot.GainChance(self)
@@ -135,7 +152,10 @@ class Bot:
                         try:
                             if Module4.top.index("O") == Module4.low.index("O"):
                                 if Module4.mid[Module4.top.index("O")] == "X":
-                                    Bot.Steal(self,"mid",Module4.mid.index("X"), self.chance)
+                                    if random.randint(1,100) <= self.chance:
+                                        Bot.Steal(self,"mid",Module4.mid.index("X"), self.chance)
+                                    else:
+                                        Bot.RandomMove(self,-1,low.index("O"))
                                 else:
                                     Module4.mid[Module4.top.index("O")] = "O"
                                     Bot.GainChance(self)
@@ -144,37 +164,55 @@ class Bot:
                         except:
                             if Module4.top[0] == "O" and Module4.mid[1] == "O":
                                 if Module4.low[2] == "X":
-                                    Bot.Steal(self,"low",2, self.chance)
+                                    if random.randint(1,100) <= self.chance:
+                                        Bot.Steal(self,"low",2, self.chance)
+                                    else:
+                                        Bot.RandomMove(self,-1,-1)
                                 else:
                                     Module4.low[2] = "O"
                                     Bot.GainChance(self)
                             elif Module4.top[2] == "O" and Module4.mid[1] == "O":
                                 if Module4.low[0] == "X":
-                                    Bot.Steal(self,"low",0, self.chance)
+                                    if random.randint(1,100) <= self.chance:
+                                        Bot.Steal(self,"low",0, self.chance)
+                                    else:
+                                        Bot.RandomMove(self,-1,-1)
                                 else:
                                     Module4.low[0] = "O"
                                     Bot.GainChance(self)
                             elif Module4.low[0] == "O" and Module4.mid[1] == "O":
                                 if Module4.top[2] == "X":
-                                    Bot.Steal(self,"top",2, self.chance)
+                                    if random.randint(1,100) <= self.chance:
+                                        Bot.Steal(self,"top",2, self.chance)
+                                    else:
+                                        Bot.RandomMove(self,-1,-1)
                                 else:
                                     Module4.top[2] = "O"
                                     Bot.GainChance(self)
                             elif Module4.low[2] == "O" and Module4.mid[1] == "O":
                                 if Module4.top[0] == "X":
-                                    Bot.Steal(self,"top",0, self.chance)
+                                    if random.randint(1,100) <= self.chance:
+                                        Bot.Steal(self,"top",0, self.chance)
+                                    else:
+                                        Bot.RandomMove(self,-1,-1)
                                 else:
                                     Module4.top[0] = "O"
                                     Bot.GainChance(self)
                             elif Module4.top[0] == "O" and Module4.low[2] == "O":
                                 if Module4.mid[1] == "X":
-                                    Bot.Steal(self,"mid",1, self.chance)
+                                    if random.randint(1,100) <= self.chance:
+                                        Bot.Steal(self,"mid",1, self.chance)
+                                    else:
+                                        Bot.RandomMove(self,-1,-1)
                                 else:
                                     Module4.mid[1] = "O"
                                     Bot.GainChance(self)
                             elif Module4.top[2] == "O" and Module4.low[0] == "O":
                                 if Module4.mid[1] == "X":
-                                    Bot.Steal(self,"mid",1, self.chance)
+                                    if random.randint(1,100) <= self.chance:
+                                        Bot.Steal(self,"mid",1, self.chance)
+                                    else:
+                                        Bot.RandomMove(self,-1,-1)
                                 else:
                                     Module4.mid[1] = "O"
                                     Bot.GainChance(self)
@@ -190,7 +228,10 @@ class Bot:
                                             Module4.top[Module4.top.index(" ")] = "O"
                                             Bot.GainChance(self)
                                     except:
-                                        Bot.Steal(self,"top", Module4.top.index("X"), self.chance)
+                                        if random.randint(1,100) >= self.chance:
+                                            Bot.RandomMove(self,1,-1)
+                                        else:
+                                            Bot.Steal(self,"top", Module4.top.index("X"), self.chance)
                                 elif Module4.mid.count("X") == 2:
                                     try:
                                         if random.randint(1,100) <= self.chance:
@@ -202,10 +243,13 @@ class Bot:
                                             Module4.mid[Module4.mid.index(" ")] = "O"
                                             Bot.GainChance(self)
                                     except:
-                                        if Module4.mid[1] == "X":
-                                            Bot.Steal(self,"mid", 1, self.chance)
+                                        if random.randint(1,100) >= self.chance:
+                                            Bot.RandomMove(self,2,-1)
                                         else:
-                                            Bot.Steal(self,"mid", Module4.mid.index("X"), self.chance)
+                                            if Module4.mid[1] == "X":
+                                                Bot.Steal(self,"mid", 1, self.chance)
+                                            else:
+                                                Bot.Steal(self,"mid", Module4.mid.index("X"), self.chance)
                                 elif Module4.low.count("X") == 2:
                                     try:
                                         if random.randint(1,100) <= self.chance:
@@ -217,15 +261,21 @@ class Bot:
                                             Module4.low[Module4.low.index(" ")] = "O"
                                             Bot.GainChance(self)
                                     except:
-                                        Bot.Steal(self,"low", Module4.low.index("X"), self.chance)
+                                        if random.randint(1,100) >= self.chance:
+                                            Bot.RandomMove(self,3,-1)
+                                        else:
+                                            Bot.Steal(self,"low", Module4.low.index("X"), self.chance)
                                 else:
                                     try:
                                         if Module4.top.index("X") == Module4.mid.index("X"):
                                             if Module4.low[Module4.top.index("X")] == "O":
-                                                if Module4.top.index("X") == 1:
-                                                    Bot.Steal(self,"mid",Module4.mid.index("O"), self.chance)
+                                                if random.randint(1,100) >= self.chance:
+                                                    Bot.RandomMove(self,-1,top.index("X"))
                                                 else:
-                                                    Bot.Steal(self,"top",Module4.low.index("O"), self.chance)
+                                                    if Module4.top.index("X") == 1:
+                                                        Bot.Steal(self,"mid",Module4.mid.index("O"), self.chance)
+                                                    else:
+                                                        Bot.Steal(self,"top",Module4.low.index("O"), self.chance)
                                             else:
                                                 if random.randint(1,100) <= self.chance:
                                                     if Module4.top.index("X") == 1:
@@ -241,10 +291,13 @@ class Bot:
                                         try:
                                             if Module4.mid.index("X") == Module4.low.index("X"):
                                                 if Module4.top[Module4.low.index("X")] == "O":
-                                                    if Module4.low.index("X") == 1:
-                                                        Bot.Steal(self,"mid",Module4.mid.index("O"), self.chance)
+                                                    if random.randint(1,100) >= self.chance:
+                                                        Bot.RandomMove(self,-1,low.index("X"))
                                                     else:
-                                                        Bot.Steal(self,"low",Module4.top.index("O"), self.chance)
+                                                        if Module4.low.index("X") == 1:
+                                                            Bot.Steal(self,"mid",Module4.mid.index("O"), self.chance)
+                                                        else:
+                                                            Bot.Steal(self,"low",Module4.top.index("O"), self.chance)
                                                 else:
                                                     if random.randint(1,100) <= self.chance:
                                                         if Module4.low.index("X") == 1:
@@ -260,7 +313,10 @@ class Bot:
                                             try:
                                                 if Module4.top.index("X") == Module4.low.index("X"):
                                                     if Module4.mid[Module4.top.index("X")] == "O":
-                                                        Bot.Steal(self,"top",Module4.mid.index("O"), self.chance)
+                                                        if random.randint(1,100) >= self.chance:
+                                                            Bot.RandomMove(self,-1,low.index("X"))
+                                                        else:
+                                                            Bot.Steal(self,"mid",Module4.mid.index("X"), self.chance)
                                                     else:
                                                         if random.randint(1,100) <= self.chance:
                                                             Bot.Steal(self,"top", Module4.top.index("X"), self.chance)
@@ -276,7 +332,7 @@ class Bot:
                                                             if Module4.low[2] == " ":
                                                                 print(CauseError)
                                                             if random.randint(1,100) >= self.chance:
-                                                                Bot.RandomMove(self)
+                                                                Bot.RandomMove(self,-1,-1)
                                                             else:
                                                                 Bot.Steal(self,"mid",Module4.mid[1], self.chance)
                                                         except:
@@ -290,7 +346,7 @@ class Bot:
                                                             if Module4.mid[1] == " ":
                                                                 print(CauseError)
                                                             if random.randint(1,100) >= self.chance:
-                                                                Bot.RandomMove(self)
+                                                                Bot.RandomMove(self,-1,-1)
                                                             else:
                                                                 Bot.Steal(self,"top", 0, self.chance)
                                                         except:
@@ -305,7 +361,7 @@ class Bot:
                                                             if Module4.low[0] == " ":
                                                                 print(CauseError)
                                                             if random.randint(1,100) >= self.chance:
-                                                                Bot.RandomMove(self)
+                                                                Bot.RandomMove(self,-1,-1)
                                                             else:
                                                                 Bot.Steal(self,"mid", 1, self.chance)
                                                         except:
@@ -319,7 +375,7 @@ class Bot:
                                                             if Module4.low[2] == " ":
                                                                 print(CauseError)
                                                             if random.randint(1,100) >= self.chance:
-                                                                Bot.RandomMove(self)
+                                                                Bot.RandomMove(self,-1,-1)
                                                             else:
                                                                 Bot.Steal(self,"top", 2, self.chance)
                                                         except:
@@ -328,5 +384,63 @@ class Bot:
                                                             else:
                                                                 Module4.mid[1] = "O"
                                                                 Bot.GainChance(self)
+                                                elif Module4.low[0] == "X" and (Module4.mid[1] == "X" or Module4.top[2] == "X"):
+                                                    if Module4.mid[1] == "X":
+                                                        try:
+                                                            if Module4.top[2] == " ":
+                                                                print(CauseError)
+                                                            if random.randint(1,100) >= self.chance:
+                                                                Bot.RandomMove(self,-1,-1)
+                                                            else:
+                                                                Bot.Steal(self,"mid",Module4.mid[1], self.chance)
+                                                        except:
+                                                            if random.randint(1,100) <= self.chance:
+                                                                Bot.Steal(self,"mid", 1, self.chance)
+                                                            else:
+                                                                Module4.top[2] = "O"
+                                                                Bot.GainChance(self)
+                                                    elif Module4.top[2] == "X":
+                                                        try:
+                                                            if Module4.mid[1] == " ":
+                                                                print(CauseError)
+                                                            if random.randint(1,100) >= self.chance:
+                                                                Bot.RandomMove(self,-1,-1)
+                                                            else:
+                                                                Bot.Steal(self,"low", 0, self.chance)
+                                                        except:
+                                                            if random.randint(1,100) <= self.chance:
+                                                                Bot.Steal(self,"low", 0, self.chance)
+                                                            else:
+                                                                Module4.mid[1] = "O"
+                                                                Bot.GainChance(self)
+                                                elif Module4.low[2] == "X" and (Module4.mid[1] == "X" or Module4.top[0] == "X"):
+                                                    if Module4.mid[1] == "X":
+                                                        try:
+                                                            if Module4.top[0] == " ":
+                                                                print(CauseError)
+                                                            if random.randint(1,100) >= self.chance:
+                                                                Bot.RandomMove(self,-1,-1)
+                                                            else:
+                                                                Bot.Steal(self,"mid", 1, self.chance)
+                                                        except:
+                                                            if random.randint(1,100) <= self.chance:
+                                                                Bot.Steal(self,"mid", 1, self.chance)
+                                                            else:
+                                                                Module4.top[0] = "O"
+                                                                Bot.GainChance(self)
+                                                    elif Module4.top[0] == "X":
+                                                        try:
+                                                            if Module4.top[2] == " ":
+                                                                print(CauseError)
+                                                            if random.randint(1,100) >= self.chance:
+                                                                Bot.RandomMove(self,-1,-1)
+                                                            else:
+                                                                Bot.Steal(self,"low", 2, self.chance)
+                                                        except:
+                                                            if random.randint(1,100) <= self.chance:
+                                                                Bot.Steal(self,"low", 2, self.chance)
+                                                            else:
+                                                                Module4.mid[1] = "O"
+                                                                Bot.GainChance(self)
                                                 else:
-                                                    Bot.RandomMove(self)
+                                                    Bot.RandomMove(self,-1,-1)

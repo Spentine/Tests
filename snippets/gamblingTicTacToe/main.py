@@ -65,13 +65,17 @@ def collect_data():
     game_data = simulate_game(True, True, True)
     results.write(json.dumps(game_data) + "\n")
 
-def evaluate_start():
+def evaluate_start(depth):
   game = Gambling_TTT()
   game.players = [0.2, 0.4]
   
-  move = choose_move(game, 10)
+  print(f"Search Depth: {depth}")
+  
+  move = choose_move(game, depth)
   print(f"Bot Row: {move[0][0]}")
   print(f"Bot Column: {move[0][1]}")
   print(f"Win Chance: {move[1]}")
 
-evaluate_start()
+evaluate_start(24)
+# collect_data()
+# evaluate_start(3)
