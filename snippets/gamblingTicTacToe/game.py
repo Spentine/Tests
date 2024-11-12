@@ -7,13 +7,9 @@ import random
 # for printing to console
 board_format_string = '''
 {board[0][0]} | {board[0][1]} | {board[0][2]}
-  |   |
 --+---+--
-  |   |  
 {board[1][0]} | {board[1][1]} | {board[1][2]}
-  |   |
 --+---+--
-  |   |  
 {board[2][0]} | {board[2][1]} | {board[2][2]}
 Player 1 Probability: {probability[0]}
 Player 2 Probability: {probability[1]}
@@ -46,7 +42,7 @@ class Gambling_TTT:
     
     # create probabilities
     # 0 = 0%, 1 = 100%
-    self.players = [1, 1]
+    self.players = [0.2, 0.2]
     
     # set turn
     self.turn = 0 # 0 or 1
@@ -69,14 +65,14 @@ class Gambling_TTT:
       self.switch_turn()
       
       # success
-      return True
+      return {"result": True, "type": 0}
     else:
       # board position occupied
       
       # if board position occupied by self
       if self.board[row][column] == self.turn:
         # failure
-        return False
+        return {"result": False, "type": 0}
       
       # whether the opponent's tile will be stolen
       steal = random.uniform(0, 1) < self.players[self.turn]
@@ -88,14 +84,19 @@ class Gambling_TTT:
         # decrease probability
         self.players[self.turn] = self.players[self.turn] - 0.1
         
+        self.switch_turn()
+        
+        # success
+        return {"result": True, "type": 1}
+        
       else:
         # increase probability
         self.players[self.turn] = min(self.players[self.turn] + 0.1, 1)
-      
-      self.switch_turn()
-      
-      # success
-      return True
+        
+        self.switch_turn()
+        
+        # success
+        return {"result": True, "type": 2}
   
   def verify_end(self, check=[0, 1]):
     # for each player

@@ -32,9 +32,9 @@ def all_moves(game):
         game_result.players[game.turn] = min(game.players[game.turn] + 0.1, 1)
         game_result.switch_turn()
         
-        moves.append([[[
-          game_result, 1
-        ]], [i, j]])
+        moves.append(((
+          (game_result, 1),
+        ), (i, j)))
       elif value == 1 - game.turn: # if it's the opponent's tile
         steal_chance = game.players[game.turn]
         results = []
@@ -46,9 +46,9 @@ def all_moves(game):
           game_result.players[game.turn] -= 0.1
           game_result.switch_turn()
           
-          results.append([
+          results.append((
             game_result, steal_chance, 
-          ])
+          ))
         
         # consider the failure if it's possible
         if steal_chance != 1:
@@ -56,12 +56,12 @@ def all_moves(game):
           game_result.players[game.turn] = min(steal_chance + 0.1, 1)
           game_result.switch_turn()
           
-          results.append([
+          results.append((
             game_result, 1 - steal_chance
-          ])
+          ))
         
         # add to result after bringing in position
-        results = [results, [i, j]]
+        results = (tuple(results), (i, j))
         moves.append(results)
   
   return moves
@@ -73,26 +73,24 @@ def recursion(game, depth):
     lookup = lookup_table[game_hash]
     # if it's of sufficient depth
     if lookup[1] >= depth:
-      return [None, lookup[0]]
+      return (None, lookup[0])
   
   # check for opponent win
   end = game.verify_end([1 - game.turn])
   # if the opponent won
   if end == 1 - game.turn:
     # 0% chance of winning, no move
-    # lookup_table[game_hash] = [0, 0]
-    return [None, 0]
+    return (None, 0)
   
   if depth == 0:
     # 50% chance of winning (don't know), no move
-    # lookup_table[game_hash] = [0.5, 0]
-    return [None, 0.5]
+    return (None, 0.5)
   
   # generate all possible moves
   moves = all_moves(game)
   
   # best position chance
-  best_position = [None, 0]
+  best_position = (None, 0)
   
   for move in moves:
     win_chance = 0
@@ -108,13 +106,13 @@ def recursion(game, depth):
     if (win_chance > best_position[1]):
       # if it's 100% win chance
       if (win_chance == 1):
-        lookup_table[game_hash] = [1, depth]
-        return [position, win_chance]
+        lookup_table[game_hash] = (1, depth)
+        return (position, win_chance)
       
       # update best position
-      best_position = [position, win_chance]
+      best_position = (position, win_chance)
   
-  lookup_table[game_hash] = [best_position[1], depth]
+  lookup_table[game_hash] = (best_position[1], depth)
   return best_position
 
 def choose_move(game, depth):
