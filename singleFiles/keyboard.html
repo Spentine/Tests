@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        background-color: #222;
+        color: #fff;
+      }
+    </style>
+    <script>
+      function main() {
+        const outputElement = document.getElementById("outputElement");
+        
+        function keyDown(event) {
+          if (event.repeat) return;
+          // console.log(event);
+          outputElement.innerText += `${event.keyCode}, ${event.code}, ${event.key} \n`;
+        }
+        
+        function keyUp(event) {
+          if (event.repeat) return;
+        }
+        
+        document.addEventListener("keydown", keyDown);
+        document.addEventListener("keyup", keyUp);
+      }
+      
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", main);
+      } else {
+        main();
+      }
+    </script>
+  </head>
+  <body>
+    <pre id="outputElement"></pre>
+  </body>
+</html>
