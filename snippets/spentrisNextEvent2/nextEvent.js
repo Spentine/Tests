@@ -60,6 +60,11 @@ class gaEventHandler {
     };
   }
   
+  /**
+   * @returns {Object} the next event
+   * @returns {String} Object.action the action to take
+   * @returns {Number} Object.time the time of the event
+   */
   next() {
     this.skipped = false;
     
@@ -83,6 +88,11 @@ class gaEventHandler {
     }
   }
   
+  /**
+   * @returns {Object} the next event
+   * @returns {String} Object.action the action to take
+   * @returns {Number} Object.time the time of the event
+   */
   skip() {
     if (this.skipped) return {
       "action": "finish",

@@ -1,6 +1,6 @@
 import { gaEventHandler } from "./nextEvent.js";
 
-const ga = new gaEventHandler(0, 1, 0, 2, 0);
+const ga = new gaEventHandler(0, 1, 10, 2, 0);
 
 function runEvents(events) {
   for (let i of events) {
@@ -15,4 +15,4 @@ function runEvents(events) {
   }
 }
 
-runEvents("nnsn");
+runEvents("nnnnnnsnssnnnnnn");
