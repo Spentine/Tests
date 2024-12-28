@@ -78,7 +78,7 @@ class gaEventHandler {
     const gravNext = this.calculateNextGrav();
     const arrNext = this.calculateNextArr();
     
-    if (arrNext === gravNext) { // arr next guaranteed
+    if (arrNext === gravNext && this.gravSpeed !== Infinity) { // arr next guaranteed
       this.arrPriority = true;
       return this.createEvent("gravity", arrNext);
     } else if (arrNext < gravNext) {
