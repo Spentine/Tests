@@ -38,7 +38,8 @@
       ?.firstChild?.lastChild?.firstChild
       ?.lastChild?.lastChild || null;
       if (grid === null) return null;
-      if (grid.childElementCount < 10) {
+      // console.log(grid.childElementCount);
+      if (grid.childElementCount < 1) {
         return null;
       }
       return grid;
@@ -49,17 +50,28 @@
   }
 
   function validateCard(card) {
-    const value = Number(
-      card
-      .firstChild.firstChild.lastChild
-      .lastChild.lastChild.lastChild
-      .textContent
-    );
-    return value > minimumTokens;
+    try {
+      const value = Number(
+        card
+        .firstChild.firstChild.lastChild
+        .lastChild.lastChild.lastChild
+        .textContent
+      );
+      // console.log(card, value);
+      return value > minimumTokens;
+    } catch (e) {
+      return 0;
+    }
   }
 
   function removeCards(grid) {
-    console.log("grid", grid);
+    // console.log("grid", grid);
+    
+    const url = new URL(window.location.href);
+    if (url.pathname !== "/") {
+      // console.log("url:", url);
+      return;
+    }
 
     const style = document.createElement("style");
     style.innerHTML = ".hidden-card { display: none !important; }";
@@ -67,7 +79,7 @@
 
     const cards = grid.children;
 
-    for (let i=cards.length-1; i>0; i--) {
+    for (let i=cards.length-1; i>-1; i--) {
       const cardElement = cards[i];
       if (!validateCard(cardElement)) {
         cardElement.classList.add("hidden-card");
