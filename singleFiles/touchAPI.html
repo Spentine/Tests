@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <style>
+      p {
+        margin: 0px;
+        font-size: 48px;
+        font-family: sans-serif;
+      }
+      
+      .fixed {
+        position: fixed;
+      }
+      
+      :root {
+        touch-action: pan-x pan-y;
+        height: 100% 
+      }
+      
+    </style>
+    <script>
+      function main() {
+        const outputElement = document.getElementById("outputElement");
+        const move = document.getElementById("move");
+        
+        function touch(e) {
+          const cT = e.changedTouches;
+          outputElement.innerText = `(${cT[0].clientX}, ${cT[0].clientY})`;
+          move.style.left = cT[0].clientX + "px";
+          move.style.top = cT[0].clientY + "px";
+          window.scrollTo(0, 100);
+        }
+        
+        function touchEnd() {
+          outputElement.innerText = "touch ended";
+        }
+        
+        document.addEventListener("touchstart", touch);
+        document.addEventListener("touchmove", touch);
+        document.addEventListener("touchend", touchEnd);
+      }
+      
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", main);
+      } else {
+        main();
+      }
+    </script>
+  </head>
+  <body>
+    <p id="outputElement" class="fixed"> </p>
+    <p id="move" class="fixed"> O </p>
+  </body>
+</html>
