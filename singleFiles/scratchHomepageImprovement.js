@@ -7,6 +7,7 @@
 // @match        https://scratch.mit.edu/
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=mit.edu
 // @grant        none
+// @license      MIT
 // ==/UserScript==
 
 (async function() {
