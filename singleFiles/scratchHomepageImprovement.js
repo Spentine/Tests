@@ -12,6 +12,9 @@
 (async function() {
   'use strict';
   
+  // used in scratch api example (see below)
+  const customProjectExample = "802293688"; // example project ID
+  
   // options for userscript
   const options = {
     // boxes to remove
@@ -34,17 +37,42 @@
     homepageElements: [
       {
         text: "Discuss Scratch",
-        type: "buttonLink",
+        type: "headerLink",
+        position: 2, // position in the header
         link: "https://scratch.mit.edu/discuss/",
       },
-      // function example
       // {
       //   text: "Discuss Scratch",
-      //   type: "button",
-      //   function: () => {
-      //     window.open("https://scratch.mit.edu/discuss/", "_blank");
-      //   },
+      //   type: "buttonLink",
+      //   link: "https://scratch.mit.edu/discuss/",
       // },
+      {
+        text: `Project ${customProjectExample}'s Stats`,
+        type: "button",
+        function: async function () {
+          // perform API call
+          const response = await fetch("https://api.scratch.mit.edu/projects/${customProjectExample}");
+          
+          if (!response.ok) {
+            console.error("Failed to fetch project data.");
+            return;
+          }
+          
+          const projectData = await response.json();
+          const stats = projectData.stats;
+          
+          const message = (
+            `Project ${customProjectExample} Stats:\n\n` +
+            `Views: ${stats.views}\n` +
+            `Loves: ${stats.loves}\n` +
+            `Favorites: ${stats.favorites}\n` +
+            `Remixes: ${stats.remixes}\n`
+          );
+          
+          // display the information in an alert
+          alert(message);
+        },
+      },
     ],
   };
   
@@ -56,6 +84,7 @@
   const view = document.getElementById("view"); // main view
   const mainScroll = view.firstChild.lastChild; // main scroll element
   const navigation = document.getElementById("navigation"); // header navigation
+  const navigationTable = navigation.firstChild.firstChild; // navigation table
   
   function removeBoxes() {
     // box titles
@@ -146,6 +175,32 @@
         buttonLink.href = element.link;
         
         mainScroll.appendChild(buttonLink);
+      } else if (element.type === "headerLink") {
+        // create a header link
+        
+        const headerContainer = document.createElement("li");
+        headerContainer.className = "link";
+        
+        const headerLink = document.createElement("a");
+        headerLink.href = element.link;
+        
+        const innerSpan = document.createElement("span");
+        innerSpan.textContent = element.text;
+        
+        // add hierarchy
+        headerLink.appendChild(innerSpan);
+        headerContainer.appendChild(headerLink);
+        
+        // get children of navigation table
+        const navChildren = navigationTable.children;
+        
+        const afterChild = navChildren[element.position];
+        console.log(afterChild);
+        
+        // add the link to the navigation
+        navigationTable.insertBefore(headerContainer, afterChild);
+      } else {
+        console.warn(`Unknown element type: ${element.type}`);
       }
     }
   }
