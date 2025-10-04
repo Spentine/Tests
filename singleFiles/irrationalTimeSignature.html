@@ -69,6 +69,12 @@
       newBpm = bpm * bc/ad
       */
       function main() {
+        /**
+         * Returns an object with integer and decimal parts of a number.
+         * @param {number} amount - The number to be split into integer and decimal parts.
+         * @param {number} decPlaces - The number of decimal places to include in the decimal part.
+         * @return {Object} an object with "int" and "dec" properties.
+         */
         function getDec(amount, decPlaces) {
           const integer = String(Math.floor(amount));
           var decimal = "";
@@ -80,6 +86,11 @@
           return {"int": integer, "dec": decimal};
         }
         
+        /**
+         * Converts the input values to a table of time signatures, BPM, and loss percentages.
+         * The function calculates the closest time signature in the form of n/2^m,
+         * adjusts the BPM accordingly, and computes the loss percentage.
+         */
         function convert() {
           function timeSig(a, b, m) {
             return Math.round(Math.pow(2, m) * a / b);
