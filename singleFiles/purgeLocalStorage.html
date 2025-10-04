@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script>
+      function purgeKey(key) {
+        if (localStorage.getItem(key) !== null) {
+          localStorage.removeItem(key);
+          console.log(`Purged key: ${key}`);
+        } else {
+          console.log(`Key not found: ${key}`);
+        }
+        alert(`Purged key: ${key}`);
+        loadKeys(); // Refresh the list of keys after purging
+      }
+      
+      function purgeAll() {
+        localStorage.clear();
+        console.log("All local storage cleared.");
+        alert("All local storage cleared.");
+        loadKeys(); // Refresh the list of keys after clearing
+      }
+      
+      function loadKeys() {
+        const keyInput = document.getElementById('keyInput');
+        keyInput.innerHTML = ''; // Clear existing options
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          const option = document.createElement('option');
+          option.value = key;
+          option.textContent = key;
+          keyInput.appendChild(option);
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1> Clear Local Storage </h1>
+    <p>
+      Perhaps I updated my website and now it is completely broken because the LocalStorage became outdated. This page allows you to purge specific keys or clear all local storage data so that the site will function again. However, this will also remove any saved data you might have wanted to keep.
+    </p>
+    
+    <hr>
+    
+    <button onclick="loadKeys()"> Load Keys </button>
+    <label for="keyInput">Enter key to purge:</label>
+    <select id="keyInput"></select>
+    <button onclick="purgeKey(document.getElementById('keyInput').value)">Purge Key</button>
+    
+    <br><br>
+    <button onclick="purgeAll()">Purge All Local Storage</button>
+    <br><br>
+  </body>
+</html>
